@@ -22,7 +22,7 @@ const config: Config = {
           900: '#33347c',
           950: '#1e1e48',
         },
-        'grenadier': {
+        grenadier: {
           50: '#fef5ee',
           100: '#fde8d7',
           200: '#faccac',
@@ -38,7 +38,8 @@ const config: Config = {
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
     },
   },
