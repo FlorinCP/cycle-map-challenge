@@ -1,11 +1,11 @@
+'use client';
+
 import { Map, type MapRef } from '@vis.gl/react-maplibre';
 import React, { useRef, useMemo } from 'react';
-import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface Props {
   longitude: number;
   latitude: number;
-  children: React.ReactNode;
   zoom?: number;
   pitch?: number;
   bearing?: number;
@@ -22,38 +22,15 @@ const DefaultMapInitialState = {
   maxZoom: 15,
 };
 
-const MAP_STYLE = {
-  version: 8,
-  sources: {
-    'osm-source': {
-      type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-    },
-  },
-  layers: [
-    {
-      id: 'osm-layer',
-      type: 'raster',
-      source: 'osm-source',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
-
 export const CustomMap: React.FC<Props> = ({
   latitude,
   longitude,
-  children,
   zoom,
   pitch,
   bearing,
   height = '24rem',
 }) => {
   const mapRef = useRef<MapRef>(null);
-
-  const mapId = useRef(`map-${Math.random().toString(36).substr(2, 9)}`);
 
   const initialViewState = useMemo(
     () => ({
@@ -71,11 +48,28 @@ export const CustomMap: React.FC<Props> = ({
   return (
     <div style={{ height }}>
       <Map
-        id={mapId.current}
         ref={mapRef}
         initialViewState={initialViewState}
         style={{ width: '100%', height: '100%' }}
-        mapStyle={MAP_STYLE}
+        mapStyle={{
+          version: 8,
+          sources: {
+            'osm-source': {
+              type: 'raster',
+              tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+              tileSize: 256,
+            },
+          },
+          layers: [
+            {
+              id: 'osm-layer',
+              type: 'raster',
+              source: 'osm-source',
+              minzoom: 0,
+              maxzoom: 19,
+            },
+          ],
+        }}
         dragPan={false}
         scrollZoom={false}
         doubleClickZoom={false}
@@ -85,9 +79,7 @@ export const CustomMap: React.FC<Props> = ({
         attributionControl={false}
         renderWorldCopies={false}
         reuseMaps
-      >
-        {children}
-      </Map>
+      />
     </div>
   );
 };
