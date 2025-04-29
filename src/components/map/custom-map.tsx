@@ -1,9 +1,8 @@
-// src/components/map/CustomMap.tsx
 'use client';
 
 import { Map, Marker, type MapRef } from '@vis.gl/react-maplibre';
-import { Map as MapLibreMap, LngLatBounds } from 'maplibre-gl'; // Import MapLibre types
-import 'maplibre-gl/dist/maplibre-gl.css'; // Import MapLibre CSS
+import { Map as MapLibreMap, LngLatBounds } from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import React, {
   useRef,
   useMemo,
@@ -18,12 +17,10 @@ import {
   useRouter,
 } from 'next/navigation';
 
-// TanStack Query Hooks
-import { useNetworksQuery } from '@/hooks/queries/use-network-query'; // Adjust path
-// Types
+import { useNetworksQuery } from '@/hooks/queries/use-network-query';
 import type { NetworkSummary, Station } from '@/types/city-bikes';
 import { filterNetworks } from '@/lib/api/utils';
-import { useNetworkDetailQuery } from '@/hooks/queries/use-network-query-detail'; // Adjust path
+import { useNetworkDetailQuery } from '@/hooks/queries/use-network-query-detail';
 
 interface Props {
   initialLongitude?: number;
@@ -32,7 +29,7 @@ interface Props {
 }
 
 const DefaultMapInitialState = {
-  longitude: 10, // Centered more globally initially
+  longitude: 10,
   latitude: 45,
   zoom: 1.5,
   pitch: 0,
@@ -44,15 +41,15 @@ export const CustomMap: React.FC<Props> = ({
   initialLongitude = DefaultMapInitialState.longitude,
   initialZoom = DefaultMapInitialState.zoom,
 }) => {
-  const mapRefGL = useRef<MapLibreMap | null>(null); // Ref for the actual MapLibre instance
-  const reactMapRef = useRef<MapRef>(null); // Ref for the react-map-gl component wrapper
+  const mapRefGL = useRef<MapLibreMap | null>(null);
+  const reactMapRef = useRef<MapRef>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-
-  // --- Routing & Filter Hooks ---
+  const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+  const mapStyleUrl = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${mapTilerKey}`;
   const pathname = usePathname();
   const params = useParams<{ id?: string }>();
   const searchParams = useSearchParams();
-  const router = useRouter(); // Needed if markers trigger navigation
+  const router = useRouter();
 
   const isDetailPage = !!params.id && pathname.startsWith('/networks/');
   const networkId = isDetailPage ? params.id : null;
@@ -60,72 +57,33 @@ export const CustomMap: React.FC<Props> = ({
   const countryCode = searchParams.get('country');
   const searchTerm = searchParams.get('search');
 
-  // --- Data Fetching Hooks ---
   const { data: allNetworks, isLoading: isLoadingNetworks } =
     useNetworksQuery();
   const { data: networkDetail, isLoading: isLoadingDetail } =
     useNetworkDetailQuery(networkId);
 
-  // --- Memoized Initial View State (Static) ---
-  const initialViewState = useMemo(
-    () => ({
-      latitude: Number(initialLatitude),
-      longitude: Number(initialLongitude),
-      zoom: Number(initialZoom),
-      pitch: DefaultMapInitialState.pitch,
-      bearing: DefaultMapInitialState.bearing,
-    }),
-    [initialLatitude, initialLongitude, initialZoom]
-  );
-
-  // --- Marker Click Handler (Example for Network Markers) ---
   const handleNetworkMarkerClick = useCallback(
     (network: NetworkSummary) => {
-      console.log(`Marker clicked: ${network.name}`);
-      const target = {
-        lat: network.location.latitude,
-        lng: network.location.longitude,
-        zoom: 12, // Or desired zoom
-      };
-      mapRefGL.current?.flyTo({
-        center: [target.lng, target.lat],
-        zoom: target.zoom,
-        duration: 1200,
-      });
       router.push(`/networks/${network.id}`); // Navigate
     },
     [router]
   );
 
-  // --- Render Markers ---
-  // Use useMemo to create marker elements only when data/filters change
   const markers = useMemo(() => {
-    if (!isMapLoaded) return null; // Don't render markers until map is loaded
-
-    console.log(
-      `Rendering markers. DetailPage: ${isDetailPage}, NetworkID: ${networkId}`
-    );
+    if (!isMapLoaded) return null;
 
     if (isDetailPage) {
-      // --- Detail View: Station Markers ---
       if (networkDetail?.stations && !isLoadingDetail) {
-        console.log(
-          `Rendering ${networkDetail.stations.length} station markers.`
-        );
         return networkDetail.stations.map((station: Station) => (
           <Marker
             key={`station-${station.id}`}
             longitude={station.longitude}
             latitude={station.latitude}
             anchor="bottom"
-            // Optional: Add onClick for station popups
             onClick={e => {
               e.originalEvent.stopPropagation(); // prevent map click
-              // Implement popup logic here
-              console.log('Station Marker Clicked:', station.name);
             }}
           >
-            {/* Simple blue dot marker - Replace with SVG or custom element */}
             <div
               className="w-3 h-3 bg-blue-500 rounded-full border-2 border-white cursor-pointer"
               title={station.name}
@@ -134,7 +92,6 @@ export const CustomMap: React.FC<Props> = ({
         ));
       }
     } else {
-      // --- List View: Network Markers ---
       if (allNetworks && !isLoadingNetworks) {
         const filtered = filterNetworks(allNetworks, countryCode, searchTerm);
         console.log(`Rendering ${filtered.length} filtered network markers.`);
@@ -163,25 +120,20 @@ export const CustomMap: React.FC<Props> = ({
   }, [
     isMapLoaded,
     isDetailPage,
-    networkId,
     networkDetail,
     allNetworks,
     isLoadingDetail,
     isLoadingNetworks,
     countryCode,
     searchTerm,
-    handleNetworkMarkerClick, // Add necessary dependencies
+    handleNetworkMarkerClick,
   ]);
 
-  // --- Effect to Move Map View ---
   useEffect(() => {
-    const map = mapRefGL.current; // Use the MapLibre instance ref
-    if (!map || !isMapLoaded) return; // Ensure map is ready
-
-    console.log('View Effect Triggered. DetailPage:', isDetailPage);
+    const map = mapRefGL.current;
+    if (!map || !isMapLoaded) return;
 
     if (isDetailPage) {
-      // --- Detail View: Fit Bounds to Stations or Center on Network ---
       if (networkDetail?.stations && !isLoadingDetail) {
         if (networkDetail.stations.length > 0) {
           const bounds = new LngLatBounds();
@@ -189,24 +141,21 @@ export const CustomMap: React.FC<Props> = ({
             bounds.extend([station.longitude, station.latitude]);
           });
           if (!bounds.isEmpty()) {
-            console.log('Fitting bounds to stations');
-            map.fitBounds(bounds, { padding: 60, maxZoom: 16, duration: 1200 });
+            map.fitBounds(bounds, { padding: 60, maxZoom: 16, duration: 0 });
           }
         } else if (networkDetail.location) {
-          // Fallback if no stations
-          console.log('Flying to network center (no stations)');
-          map.flyTo({
+          console.log('Instantly jumping to network center (no stations)');
+          map.jumpTo({
+            // <--- Changed from flyTo to jumpTo
             center: [
               networkDetail.location.longitude,
               networkDetail.location.latitude,
             ],
             zoom: 12,
-            duration: 1200,
           });
         }
       }
     } else {
-      // --- List View: Fit Bounds to Filtered Networks ---
       if (allNetworks && !isLoadingNetworks) {
         const filtered = filterNetworks(allNetworks, countryCode, searchTerm);
         if (filtered.length > 0) {
@@ -218,12 +167,10 @@ export const CustomMap: React.FC<Props> = ({
             ]);
           });
           if (!bounds.isEmpty()) {
-            console.log('Fitting bounds to filtered networks');
+            console.log('Fitting bounds to filtered networks (animated)');
             map.fitBounds(bounds, { padding: 40, maxZoom: 14, duration: 1000 });
           }
         } else {
-          // Optional: Reset view if no networks match filter
-          console.log('No filtered networks, resetting view');
           map.flyTo({
             center: [initialLongitude, initialLatitude],
             zoom: initialZoom,
@@ -233,6 +180,7 @@ export const CustomMap: React.FC<Props> = ({
       }
     }
   }, [
+    // Dependencies remain the same
     isMapLoaded,
     isDetailPage,
     networkDetail,
@@ -243,10 +191,9 @@ export const CustomMap: React.FC<Props> = ({
     searchTerm,
     initialLatitude,
     initialLongitude,
-    initialZoom, // Ensure all dependencies affecting view are listed
+    initialZoom,
   ]);
 
-  // --- Callback to get MapLibre instance ---
   const onMapLoad = useCallback((evt: maplibregl.MapLibreEvent) => {
     mapRefGL.current = evt.target; // Store the MapLibre instance
     setIsMapLoaded(true);
@@ -254,9 +201,7 @@ export const CustomMap: React.FC<Props> = ({
   }, []);
 
   return (
-    // Container needs explicit height, typically provided by parent layout
     <div className={'h-full w-full relative'}>
-      {/* Loading Indicator Overlay (Optional) */}
       {(isLoadingNetworks || (isDetailPage && isLoadingDetail)) && (
         <div className="absolute inset-0 bg-gray-200 bg-opacity-50 flex items-center justify-center z-10">
           <p className="text-gray-700">Loading map data...</p>
@@ -266,32 +211,12 @@ export const CustomMap: React.FC<Props> = ({
       <Map
         ref={reactMapRef} // Ref for the React component
         onLoad={onMapLoad} // Get the actual map instance on load
-        initialViewState={initialViewState}
+        initialViewState={DefaultMapInitialState}
         style={{ width: '100%', height: '100%' }}
-        mapStyle={{
-          /* Your map style */ version: 8,
-          sources: {
-            'osm-source': {
-              type: 'raster',
-              tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-              tileSize: 256,
-              attribution: '© OpenStreetMap contributors',
-            },
-          },
-          layers: [
-            {
-              id: 'osm-layer',
-              type: 'raster',
-              source: 'osm-source',
-              minzoom: 0,
-              maxzoom: 19,
-            },
-          ],
-        }}
+        mapStyle={mapStyleUrl}
         renderWorldCopies={false}
         reuseMaps
       >
-        {/* Render markers as children of the Map component */}
         {markers}
       </Map>
     </div>
