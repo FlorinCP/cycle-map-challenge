@@ -1,89 +1,35 @@
-// src/components/networks/NetworkListItem.tsx
-'use client'; // Mark as client component for consistency and potential future interactions
+"use client"
 
-import Link from 'next/link'; // Use Next.js Link for optimized client-side navigation
-import type { NetworkSummary } from '@/types/city-bikes'; // Import the type definition
+import { MapPin, Briefcase, ChevronRight } from "lucide-react"
+import Link from "next/link"
+import { NetworkSummary } from '@/types/city-bikes';
 
-// Optional imports if implementing flyTo + navigate action
-// import { useMapInteractionStore } from '@/store/mapInteractionStore';
-// import { useRouter } from 'next/navigation';
-
-// Define the props the component expects
-interface NetworkListItemProps {
-  network: NetworkSummary;
-}
-
-export default function NetworkListItem({ network }: NetworkListItemProps) {
-  // --- Optional: Hooks for flyTo + navigate action ---
-  // Uncomment and use if you choose this interaction pattern instead of simple Link
-  // const setFlyToTarget = useMapInteractionStore((state) => state.setFlyToTarget);
-  // const router = useRouter();
-
-  // const handleFlyToAndNavigate = (e: React.MouseEvent) => {
-  //   e.preventDefault(); // Prevent standard link behavior if needed
-  //   const target = {
-  //     lat: network.location.latitude,
-  //     lng: network.location.longitude,
-  //     zoom: 12, // Adjust zoom level as desired
-  //   };
-  //   console.log('ListItem: Setting flyTo target and navigating');
-  //   setFlyToTarget(target); // Trigger map animation via store
-  //   router.push(`/networks/${network.id}`); // Navigate programmatically
-  // };
-  // --- End Optional ---
-
-  // Helper to safely format company names (handles string or string[])
-  const getCompanyDisplay = (
-    company: string | string[] | undefined | null
-  ): string => {
-    if (!company) return 'N/A';
-    const companies = Array.isArray(company) ? company : [company];
-    return companies.filter(Boolean).join(', ') || 'N/A'; // Filter out empty/null strings
-  };
-
-  const companyDisplay = getCompanyDisplay(network.company);
+export function NetworkItem({ name, location, company, href }: NetworkSummary) {
+  const companies = Array.isArray(company) ? company : [company]
 
   return (
-    // Using Next.js Link for standard navigation. The map component
-    // will react to the URL change if it's using useParams/usePathname.
-    <Link
-      href={`/networks/${network.id}`}
-      className="block p-4 border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-      aria-label={`View details for ${network.name}`}
-    >
-      <div className="flex flex-col">
-        {/* Network Name */}
-        <h3 className="text-lg font-semibold text-gray-800 truncate mb-1">
-          {network.name || 'Unnamed Network'}
-        </h3>
-
-        {/* Location */}
-        <p className="text-sm text-gray-600 mb-1">
-          {network.location.city || 'Unknown City'},{' '}
-          {network.location.country?.toUpperCase() || 'Unknown Country'}
-        </p>
-
-        {/* Companies */}
-        <p className="text-xs text-gray-500">
-          <span className="font-medium">Operator(s):</span> {companyDisplay}
-        </p>
+    <div className="border-b border-[#e2eafd] pb-6">
+      <h2 className="text-xl font-semibold text-[#363698] mb-2">{name}</h2>
+      <div className="flex items-center gap-2 text-[#71717a] mb-2">
+        <MapPin className="h-5 w-5 text-[#f0581f]" />
+        <span>
+          {location.city}, {location.country}
+        </span>
       </div>
-    </Link>
-
-    /* --- Alternative structure for onClick={handleFlyToAndNavigate} ---
-    <div
-      onClick={handleFlyToAndNavigate} // Attach handler here instead of using Link's href
-      className="block p-4 border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 cursor-pointer"
-      role="button" // Indicate it's clickable
-      tabIndex={0} // Make it focusable
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFlyToAndNavigate(e as any); }} // Basic keyboard interaction
-      aria-label={`View details for ${network.name}`}
-    >
-        // ... same inner content (h3, p tags) ...
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-[#71717a]">
+          <Briefcase className="h-5 w-5 text-[#f0581f]" />
+          <span>{companies.slice(0, 2).join(", ")}</span>
+          {companies.length > 2 && (
+            <span className="inline-flex items-center justify-center h-6 w-6 rounded border border-[#f0581f] text-[#f0581f] text-xs">
+              +{companies.length - 2}
+            </span>
+          )}
+        </div>
+        <Link href={href}>
+          <ChevronRight className="h-5 w-5 text-[#f0581f]" />
+        </Link>
+      </div>
     </div>
-    */
-  );
+  )
 }
-
-// Optional: Add a display name for better debugging
-NetworkListItem.displayName = 'NetworkListItem';

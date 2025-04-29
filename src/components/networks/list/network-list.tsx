@@ -1,21 +1,16 @@
-// src/components/networks/NetworkList.tsx
-'use client'; // This component needs client-side hooks and logic
+'use client';
 
 import React, { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation'; // Hook to read URL search params
 
-// Import the TanStack Query hook for fetching networks
-
-// Import utility functions for filtering and pagination
 import {
   filterNetworks,
   paginateItems,
   calculateTotalPages,
 } from '@/lib/api/utils'; // Ensure this path is correct
 
-// Import the component to render individual list items
 import { useNetworksQuery } from '@/hooks/queries/use-network-query';
-import NetworkListItem from '@/components/networks/list/network-list-item';
+import { NetworkItem } from '@/components/networks/list/network-list-item';
 
 const ITEMS_PER_PAGE = 15; // How many networks to show per page
 
@@ -119,7 +114,14 @@ export default function NetworkList() {
       <div className="flex-grow overflow-y-auto p-4 space-y-3">
         {filteredNetworks.length > 0 ? (
           paginatedNetworks.map(network => (
-            <NetworkListItem key={network.id} network={network} />
+            <NetworkItem
+              key={network.id}
+              company={network.company}
+              id={network.id}
+              name={network.name}
+              location={network.location}
+              href={network.href}
+            />
           ))
         ) : (
           <p className="text-center text-gray-500 mt-8">
@@ -131,10 +133,7 @@ export default function NetworkList() {
       {/* Pagination Footer */}
       {totalPages > 1 && (
         <div className="p-4 border-t shrink-0">
-          {/* Render your actual PaginationControls component here */}
-          {/* <PaginationControls currentPage={currentPage} totalPages={totalPages} /> */}
           <p className="text-center text-sm text-gray-500">
-            {/* Placeholder until PaginationControls is implemented */}
             Pagination (Page {currentPage}/{totalPages})
           </p>
         </div>
