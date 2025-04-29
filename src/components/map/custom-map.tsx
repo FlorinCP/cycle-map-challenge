@@ -17,7 +17,7 @@ const DefaultMapInitialState = {
   longitude: 0,
   latitude: 0,
   zoom: 12,
-  pitch: 45,
+  pitch: 0,
   bearing: 0,
   maxZoom: 15,
 };
@@ -28,7 +28,6 @@ export const CustomMap: React.FC<Props> = ({
   zoom,
   pitch,
   bearing,
-  height = '24rem',
 }) => {
   const mapRef = useRef<MapRef>(null);
 
@@ -46,7 +45,7 @@ export const CustomMap: React.FC<Props> = ({
   );
 
   return (
-    <div style={{ height }}>
+    <div className={'h-full w-full'}>
       <Map
         ref={mapRef}
         initialViewState={initialViewState}
@@ -70,12 +69,6 @@ export const CustomMap: React.FC<Props> = ({
             },
           ],
         }}
-        dragPan={false}
-        scrollZoom={false}
-        doubleClickZoom={false}
-        touchPitch={false}
-        dragRotate={false}
-        keyboard={false}
         attributionControl={false}
         renderWorldCopies={false}
         reuseMaps
