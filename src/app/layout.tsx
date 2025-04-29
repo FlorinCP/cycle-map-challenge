@@ -1,5 +1,6 @@
 import { Poppins } from 'next/font/google';
 import './globals.css';
+import QueryProvider from '@/lib/api/query-provider';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} antialiased`}>{children}</body>
+      <body className={`${poppins.variable} antialiased`}>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }
