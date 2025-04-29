@@ -41,7 +41,7 @@ export default function CountryFilter() {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="ALL">All Countries</SelectItem>
-        {countries.data.map((country) => (
+        {countries.data.map(country => (
           <SelectItem key={country.code} value={country.code}>
             {country.name} ({country.code})
           </SelectItem>

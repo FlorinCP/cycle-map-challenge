@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import type React from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -17,13 +18,20 @@ export default function NetworkSearchInput() {
   const pathnameRef = useRef(pathname);
   const searchParamsRef = useRef(searchParams);
 
-  useEffect(() => { routerRef.current = router; }, [router]);
-  useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
-  useEffect(() => { searchParamsRef.current = searchParams; }, [searchParams]);
-
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
 
   const performUpdate = useCallback((term: string) => {
-    const current = new URLSearchParams(Array.from(searchParamsRef.current.entries()));
+    const current = new URLSearchParams(
+      Array.from(searchParamsRef.current.entries())
+    );
 
     if (!term.trim()) {
       current.delete('search');
@@ -34,19 +42,17 @@ export default function NetworkSearchInput() {
 
     const search = current.toString();
     const query = search ? `?${search}` : '';
-    console.log(`Updating URL search to: ${term}`);
     routerRef.current.push(`${pathnameRef.current}${query}`);
-  }, []); // performUpdate itself has no external dependencies now
+  }, []);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedUpdateURL = useCallback(
     debounce((term: string) => {
       performUpdate(term);
     }, 500),
-    [performUpdate] // Depends only on the stable performUpdate function
+    [performUpdate]
   );
 
-  // Update input value if URL changes externally
   useEffect(() => {
     setInputValue(initialSearch);
   }, [initialSearch]);
@@ -54,20 +60,21 @@ export default function NetworkSearchInput() {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     setInputValue(newValue);
-    debouncedUpdateURL(newValue); // Call the debounced function
+    debouncedUpdateURL(newValue);
   };
 
   return (
     <div className="relative flex-grow">
-      <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+      <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#71717a]" />
       <Input
         type="search"
         placeholder="Search networks or companies..."
         value={inputValue}
         onChange={handleChange}
-        className="pl-8 w-full"
+        className="pl-10 py-6 rounded-full border-[#e2eafd] bg-white text-[#71717a]"
       />
     </div>
   );
 }
+
 NetworkSearchInput.displayName = 'NetworkSearchInput';

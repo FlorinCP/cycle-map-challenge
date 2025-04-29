@@ -195,7 +195,7 @@ export const CustomMap: React.FC<Props> = ({
   ]);
 
   const onMapLoad = useCallback((evt: maplibregl.MapLibreEvent) => {
-    mapRefGL.current = evt.target; // Store the MapLibre instance
+    mapRefGL.current = evt.target;
     setIsMapLoaded(true);
     console.log('MapLibre Instance Loaded and Stored');
   }, []);

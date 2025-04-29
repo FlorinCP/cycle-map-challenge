@@ -1,11 +1,9 @@
-"use client"
-
-import { MapPin, Briefcase, ChevronRight } from "lucide-react"
-import Link from "next/link"
+import { MapPin, Briefcase, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { NetworkSummary } from '@/types/city-bikes';
 
 export function NetworkItem({ name, location, company, href }: NetworkSummary) {
-  const companies = Array.isArray(company) ? company : [company]
+  const companies = Array.isArray(company) ? company : [company];
 
   return (
     <div className="border-b border-[#e2eafd] pb-6">
@@ -19,7 +17,7 @@ export function NetworkItem({ name, location, company, href }: NetworkSummary) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[#71717a]">
           <Briefcase className="h-5 w-5 text-[#f0581f]" />
-          <span>{companies.slice(0, 2).join(", ")}</span>
+          <span>{companies.slice(0, 2).join(', ')}</span>
           {companies.length > 2 && (
             <span className="inline-flex items-center justify-center h-6 w-6 rounded border border-[#f0581f] text-[#f0581f] text-xs">
               +{companies.length - 2}
@@ -31,5 +29,5 @@ export function NetworkItem({ name, location, company, href }: NetworkSummary) {
         </Link>
       </div>
     </div>
-  )
+  );
 }
