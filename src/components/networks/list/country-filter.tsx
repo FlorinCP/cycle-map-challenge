@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Globe } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 export default function CountryFilter() {
   const searchParams = useSearchParams();
@@ -29,15 +29,17 @@ export default function CountryFilter() {
 
     const search = current.toString();
     const query = search ? `?${search}` : '';
-    console.log(`Updating URL country to: ${value || 'ALL'}`);
     router.push(`${pathname}${query}`);
   };
 
   return (
     <Select value={currentCountry} onValueChange={handleCountryChange}>
-      <SelectTrigger className="rounded-full border-[#e2eafd] py-6 px-6 flex items-center gap-2 text-[#363698]">
-        <Globe className="h-5 w-5 text-[#363698]" />
-        <SelectValue placeholder="Country" />
+      <SelectTrigger className="rounded-full border-border py-6 px-6 flex items-center gap-2 text-primary">
+        <MapPin className="h-5 w-5 text-primary" />
+        <SelectValue
+          placeholder="Country"
+          className="text-primary placeholder:text-primary"
+        />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="ALL">All Countries</SelectItem>

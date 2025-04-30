@@ -15,6 +15,7 @@ import {
 } from '@/lib/api/utils';
 import NetworkList from '@/components/networks/list/network-list';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -45,8 +46,8 @@ export default function NetworksListView() {
   }, [filteredNetworks.length]);
 
   return (
-    <div className="p-10 flex flex-col w-full max-h-screen overflow-y-auto bg-white">
-      <Image src={logo} alt={'CycleMapLogo'} />
+    <div className="p-10 pt-0 flex flex-col w-full max-h-screen overflow-y-auto bg-white">
+      <Image src={logo} alt={'CycleMapLogo'} className={'pt-10'} />
       <div className="pt-6 inline-flex flex-col justify-start items-start gap-4">
         <div className="justify-start text-primary text-3xl font-semibold leading-10">
           Discover bike networks
@@ -57,7 +58,18 @@ export default function NetworksListView() {
           pellentesque nisi quam in rhoncus.
         </div>
       </div>
-      <div className="py-4 flex shrink-0 gap-2 items-center">
+      <div
+        className={cn(
+          'py-4 flex shrink-0 gap-2 items-center ',
+          'sticky top-0 z-10',
+          'bg-transparent',
+          "after:content-['']",
+          'after:absolute after:inset-0', // Cover the entire element area
+          'after:z-[-1]', // Position it *behind* the content (inputs/select)
+          // The gradient: starts white, stays white for 90%, fades to transparent
+          'after:bg-gradient-to-b after:from-white after:via-white/100 after:via-[85%] after:to-white/0'
+        )}
+      >
         <NetworkSearchInput />
         <CountryFilter />
       </div>

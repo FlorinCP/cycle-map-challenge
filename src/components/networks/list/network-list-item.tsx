@@ -7,7 +7,7 @@ export function NetworkItem({ name, location, company, href }: NetworkSummary) {
 
   return (
     <div className="border-b border-accent py-4 flex gap-1 flex-col px-6 hover:bg-accent group">
-      <h2 className="self-stretch justify-start text-torea-bay-800 text-xl font-bold leading-7">
+      <h2 className="self-stretch justify-start text-torea-bay-800 text-xl font-bold">
         {name}
       </h2>
       <div>

@@ -65,13 +65,13 @@ export default function NetworkSearchInput() {
 
   return (
     <div className="relative flex-grow">
-      <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#71717a]" />
+      <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-primary" />
       <Input
         type="search"
         placeholder="Search networks or companies..."
         value={inputValue}
         onChange={handleChange}
-        className="pl-10 py-6 rounded-full border-[#e2eafd] bg-white text-[#71717a]"
+        className="pl-10 py-6 rounded-full text-primary bg-white placeholder:text-primary border border-border leading-7 font-normal"
       />
     </div>
   );
