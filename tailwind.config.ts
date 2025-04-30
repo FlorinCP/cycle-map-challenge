@@ -1,88 +1,120 @@
-import type { Config } from 'tailwindcss';
-
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ["class"],
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   theme: {
     container: {
       center: true,
-      padding: '2rem',
+      padding: "2rem",
       screens: {
-        '2xl': '1400px',
+        "2xl": "1400px",
       },
     },
     extend: {
       colors: {
-        'torea-bay': {
-          50: '#eff4fe',
-          100: '#e2eafd',
-          200: '#cad7fb',
-          300: '#abbdf6',
-          400: '#8998f0',
-          500: '#6c77e8',
-          600: '#5050db',
-          700: '#4341c1',
-          800: '#363698',
-          900: '#33347c',
-          950: '#1e1e48',
+        "torea-bay": {
+          "50": "rgba(239, 244, 254, 1)",
+          "100": "rgba(226, 234, 253, 1)",
+          "200": "rgba(202, 215, 251, 1)",
+          "300": "rgba(171, 189, 246, 1)",
+          "400": "rgba(137, 152, 240, 1)",
+          "500": "rgba(108, 119, 232, 1)",
+          "600": "rgba(80, 80, 219, 1)",
+          "700": "rgba(67, 65, 193, 1)",
+          "800": "rgba(54, 54, 152, 1)",
+          "900": "rgba(51, 52, 124, 1)",
+          "950": "rgba(30, 30, 72, 1)",
         },
-        grenadier: {
-          50: '#fef5ee',
-          100: '#fde8d7',
-          200: '#faccac',
-          300: '#f7a97a',
-          400: '#f37b44',
-          500: '#f0581f',
-          600: '#de3e15',
-          700: '#ba2d14',
-          800: '#ba2d14',
-          900: '#942618',
-          950: '#782116',
+        "grenadier": {
+          "50": "rgba(254, 245, 238, 1)",
+          "100": "rgba(253, 232, 215, 1)",
+          "200": "rgba(250, 204, 174, 1)",
+          "300": "rgba(247, 169, 122, 1)",
+          "400": "rgba(243, 123, 68, 1)",
+          "500": "rgba(240, 88, 31, 1)",
+          "600": "rgba(222, 62, 21, 1)",
+          "700": "rgba(186, 45, 20, 1)",
+          "800": "rgba(186, 45, 20, 1)", // Note: 800 and 700 have the same value in your list
+          "900": "rgba(148, 38, 24, 1)",
+          "950": "rgba(120, 33, 22, 1)",
         },
-        border: 'oklch(var(--border) / <alpha-value>)',
-        input: 'oklch(var(--input) / <alpha-value>)',
-        ring: 'oklch(var(--ring) / <alpha-value>)',
-        background: 'oklch(var(--background) / <alpha-value>)',
-        foreground: 'oklch(var(--foreground) / <alpha-value>)',
+        // Base colors needed for references
+        "base": {
+          "white": "#FFFFFF",
+        },
+        "zinc": {
+          "50": "#fafafa",
+          "100": "#f4f4f5",
+          "200": "#e4e4e7",
+          "300": "#d4d4d8",
+          "400": "#a1a1aa",
+          "500": "#71717a",
+        },
+        "red": {
+          "500": "#ef4444",
+          "600": "#dc2626",
+        },
+
+        // shadcn/ui theme colors
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--focus)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
         primary: {
-          DEFAULT: 'oklch(var(--primary) / <alpha-value>)',
-          foreground: 'oklch(var(--primary-foreground) / <alpha-value>)',
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
         },
         secondary: {
-          DEFAULT: 'oklch(var(--secondary) / <alpha-value>)',
-          foreground: 'oklch(var(--secondary-foreground) / <alpha-value>)',
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
         },
         destructive: {
-          DEFAULT: 'oklch(var(--destructive) / <alpha-value>)',
-          foreground: 'oklch(var(--destructive-foreground) / <alpha-value>)',
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
         },
         muted: {
-          DEFAULT: 'oklch(var(--muted) / <alpha-value>)',
-          foreground: 'oklch(var(--muted-foreground) / <alpha-value>)',
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
         },
         accent: {
-          DEFAULT: 'oklch(var(--accent) / <alpha-value>)',
-          foreground: 'oklch(var(--accent-foreground) / <alpha-value>)',
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
         },
         popover: {
-          DEFAULT: 'oklch(var(--popover) / <alpha-value>)',
-          foreground: 'oklch(var(--popover-foreground) / <alpha-value>)',
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
         },
         card: {
-          DEFAULT: 'oklch(var(--card) / <alpha-value>)',
-          foreground: 'oklch(var(--card-foreground) / <alpha-value>)',
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
         },
       },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic':
-          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: 0 },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: 0 },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
   plugins: [],
-};
-export default config;
+}
