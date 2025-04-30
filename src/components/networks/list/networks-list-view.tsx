@@ -45,7 +45,7 @@ export default function NetworksListView() {
   }, [filteredNetworks.length]);
 
   return (
-    <div className="p-10 flex flex-col w-full max-h-screen overflow-y-auto bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+    <div className="p-10 flex flex-col w-full max-h-screen overflow-y-auto bg-white">
       <Image src={logo} alt={'CycleMapLogo'} />
       <div className="pt-6 inline-flex flex-col justify-start items-start gap-4">
         <div className="justify-start text-primary text-3xl font-semibold leading-10">
