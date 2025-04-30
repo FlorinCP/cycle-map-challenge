@@ -45,7 +45,7 @@ export const CustomMap: React.FC<Props> = ({
   const reactMapRef = useRef<MapRef>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
-  const mapStyleUrl = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${mapTilerKey}`;
+  const mapStyleUrl = `https://api.maptiler.com/maps/streets-v2-light/style.json?key=${mapTilerKey}`;
   const pathname = usePathname();
   const params = useParams<{ id?: string }>();
   const searchParams = useSearchParams();

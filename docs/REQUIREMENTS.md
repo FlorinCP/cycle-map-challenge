@@ -137,3 +137,4 @@ Since this file was generated based on the challenge description, I will add dow
 - [ ] PWA support
 - [ ] Add a loading spinner, some fallback UI, and error handling
 - [ ] Better Fetch with filtering and so
+- [ ] tree shaking

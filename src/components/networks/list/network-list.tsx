@@ -10,7 +10,7 @@ interface NetworkListProps {
 
 export default function NetworkList({ networksToDisplay }: NetworkListProps) {
   return (
-    <div className="flex-grow overflow-y-auto p-4 space-y-3">
+    <div>
       {networksToDisplay.length > 0 ? (
         networksToDisplay.map(network => (
           <NetworkItem
