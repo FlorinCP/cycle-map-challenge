@@ -15,6 +15,7 @@ import {
   usePaginationRange,
   DOTS,
 } from '@/hooks/pagination/use-pagination-range';
+import { cn } from '@/lib/utils';
 
 interface PaginationNavProps {
   currentPage: number;
@@ -77,6 +78,10 @@ export function PaginationNav({
               <PaginationLink
                 href={createPageURL(pageNumber)}
                 isActive={currentPage === pageNumber}
+                className={cn(
+                  'text-accent-foreground border',
+                  currentPage === pageNumber && 'bg-accent'
+                )}
                 aria-current={currentPage === pageNumber ? 'page' : undefined}
               >
                 {pageNumber}

@@ -61,7 +61,7 @@ export default function NetworksListView() {
         <NetworkSearchInput />
         <CountryFilter />
       </div>
-      <div className="flex-grow relative">
+      <div className="flex-grow gap-6 flex flex-col relative">
         <NetworkList networksToDisplay={paginatedNetworks} />
         <PaginationNav
           currentPage={currentPage}
