@@ -1,12 +1,12 @@
-import { MapPin, Briefcase, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { MapPin, Briefcase } from 'lucide-react';
 import { NetworkSummary } from '@/types/city-bikes';
+import { ExpandingDetailButton } from '@/components/networks/list/expanding-detail-button';
 
 export function NetworkItem({ name, location, company, href }: NetworkSummary) {
   const companies = Array.isArray(company) ? company : [company];
 
   return (
-    <div className="border-b border-accent py-4 flex gap-1 flex-col px-6 hover:bg-accent">
+    <div className="border-b border-accent py-4 flex gap-1 flex-col px-6 hover:bg-accent group">
       <h2 className="self-stretch justify-start text-torea-bay-800 text-xl font-bold leading-7">
         {name}
       </h2>
@@ -29,9 +29,7 @@ export function NetworkItem({ name, location, company, href }: NetworkSummary) {
               </span>
             )}
           </div>
-          <Link href={href} className={"px-2 py-1"}>
-            <ChevronRight className="h-5 w-5 text-[#f0581f]" />
-          </Link>
+          <ExpandingDetailButton href={href} />
         </div>
       </div>
     </div>
