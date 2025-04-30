@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useNetworksQuery } from '@/hooks/queries/use-network-query';
-
+import logo from '@/assets/svg/cycle-map-logo.svg';
 import CountryFilter from './country-filter';
 import NetworkSearchInput from './network-search-input';
 import { PaginationNav } from '@/components/networks/list/pagination-nav';
@@ -14,6 +14,7 @@ import {
   paginateItems,
 } from '@/lib/api/utils';
 import NetworkList from '@/components/networks/list/network-list';
+import Image from 'next/image';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -44,15 +45,24 @@ export default function NetworksListView() {
   }, [filteredNetworks.length]);
 
   return (
-    <div className="flex flex-col w-full max-h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3 md:space-y-0 md:flex md:items-center md:space-x-4 shrink-0">
+    <div className="p-10 flex flex-col w-full max-h-screen overflow-y-auto bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+      <Image src={logo} alt={'CycleMapLogo'} />
+      <div className="pt-6 inline-flex flex-col justify-start items-start gap-4">
+        <div className="justify-start text-primary text-3xl font-semibold leading-10">
+          Discover bike networks
+        </div>
+        <div className="w-full h-16 justify-start text-muted-foreground text-sm font-normal leading-tight">
+          Lorem ipsum dolor sit amet consectetur. A volutpat adipiscing placerat
+          turpis magna sem tempor amet faucibus. Arcu praesent viverra
+          pellentesque nisi quam in rhoncus.
+        </div>
+      </div>
+      <div className="py-4 flex shrink-0 gap-2 items-center">
         <NetworkSearchInput />
         <CountryFilter />
       </div>
-      <div className="flex-grow relative overflow-y-auto">
+      <div className="flex-grow relative">
         <NetworkList networksToDisplay={paginatedNetworks} />
-      </div>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
         <PaginationNav
           currentPage={currentPage}
           totalPages={totalPages}
