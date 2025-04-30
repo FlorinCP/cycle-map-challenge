@@ -129,3 +129,11 @@ Use this checklist to track completion of the challenge requirements. Aiming for
 - [ ] **Robustness:** Handling of edge cases (API errors, no data).
 - [ ] **README Quality:** Clear and comprehensive documentation.
 - [ ] **Git History:** Clean and logical commits.
+
+---
+
+Since this file was generated based on the challenge description, I will add down here my own TODOs.
+
+- [ ] PWA support
+- [ ] Add a loading spinner, some fallback UI, and error handling
+- [ ] Better Fetch with filtering and so
