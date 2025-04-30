@@ -7,7 +7,10 @@ interface ExpandingDetailButtonProps {
   className?: string;
 }
 
-export function ExpandingDetailButton({ href, className }: ExpandingDetailButtonProps) {
+export function ExpandingDetailButton({
+  href,
+  className,
+}: ExpandingDetailButtonProps) {
   return (
     <Link
       href={href}
@@ -66,7 +69,7 @@ export function ExpandingDetailButton({ href, className }: ExpandingDetailButton
       <ChevronRight
         className={cn(
           'h-5 w-5',
-          "text-grenadier-500",
+          'text-grenadier-500',
           'group-hover:',
           'transition-colors duration-300 ease-in-out'
         )}
