@@ -80,7 +80,7 @@ export default function NetworksListView() {
           pageSize={ITEMS_PER_PAGE}
         />
       </div>
-      <div className="bottom-0 absolute w-full h-[120px] bg-gradient-to-b from-white/0 to-white" />
+      <div className="bottom-0 absolute w-full h-[120px] bg-gradient-to-b from-white/0 to-white pointer-events-none" />
     </div>
   );
 }

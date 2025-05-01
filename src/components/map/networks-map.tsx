@@ -61,7 +61,7 @@ export const NetworksMap: React.FC<Props> = ({
           }}
         >
           <div
-            className="w-3 h-3 bg-grenadier-200 rounded-full border-2 border-grenadier-400 cursor-pointer"
+            className="w-3 h-3 bg-grenadier-300 rounded-full border-2 border-grenadier-400 cursor-pointer"
             title={network.name}
           ></div>
         </Marker>

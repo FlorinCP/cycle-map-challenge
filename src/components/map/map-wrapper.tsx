@@ -3,9 +3,11 @@
 import { Map, type MapRef } from '@vis.gl/react-maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
+import { MapLibreEvent } from 'maplibre-gl';
 
 interface Props {
   children?: React.ReactNode;
+  onLoad?: (evt: MapLibreEvent) => void;
   isLoading?: boolean;
 }
 
@@ -18,7 +20,7 @@ const DefaultMapInitialState = {
 };
 
 export const MapWrapper = forwardRef<MapRef, Props>(
-  ({ isLoading, children }, ref) => {
+  ({ isLoading, children, onLoad }, ref) => {
     const reactMapRef = useRef<MapRef>(null);
     const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
     const mapStyleUrl = `https://api.maptiler.com/maps/streets-v2-light/style.json?key=${mapTilerKey}`;
@@ -36,6 +38,7 @@ export const MapWrapper = forwardRef<MapRef, Props>(
         <Map
           ref={reactMapRef}
           initialViewState={DefaultMapInitialState}
+          onLoad={onLoad}
           style={{ width: '100%', height: '100%' }}
           mapStyle={mapStyleUrl}
           renderWorldCopies={false}

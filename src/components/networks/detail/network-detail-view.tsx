@@ -58,7 +58,7 @@ export default function NetworkDetailView({
     const totalPages = calculateTotalPages(sorted.length, STATIONS_PER_PAGE);
 
     return { paginated, totalPages };
-  }, [networkDetail?.stations, sortConfig, currentPage]); // Dependencies
+  }, [networkDetail?.stations, sortConfig, currentPage]);
 
   const getCompanyDisplay = (
     company: string | string[] | undefined | null
@@ -67,10 +67,6 @@ export default function NetworkDetailView({
     const companies = Array.isArray(company) ? company : [company];
     return companies.filter(Boolean).join(', ') || 'N/A';
   };
-
-  if (!networkDetail) {
-    return null;
-  }
 
   return (
     <div className="flex flex-col w-full max-h-screen min-h-screen overflow-y-auto bg-primary">
@@ -90,20 +86,20 @@ export default function NetworkDetailView({
         </Link>
         <div className={'flex gap-2 flex-col'}>
           <h1 className="text-3xl font-bold text-white">
-            {networkDetail.name}
+            {networkDetail?.name}
           </h1>
           <span>
             <div className={'flex gap-2 items-center'}>
               <MapPin className={'text-white h-4 w-4'} />
               <p className="text-base text-white">
-                {networkDetail.location.city},{' '}
-                {networkDetail.location.country.toUpperCase()}
+                {networkDetail?.location.city},{' '}
+                {networkDetail?.location.country.toUpperCase()}
               </p>
             </div>
             <div className={'flex gap-2 items-center'}>
               <BriefcaseBusiness className={'text-white h-4 w-4'} />
               <p className="text-base text-white">
-                {getCompanyDisplay(networkDetail.company)}
+                {getCompanyDisplay(networkDetail?.company)}
               </p>
             </div>
           </span>
@@ -118,7 +114,7 @@ export default function NetworkDetailView({
               'text-grenadier-400 mx-2 border border-grenadier-400 rounded-md px-1.5 py-1 text-sm'
             }
           >
-            {networkDetail.stations.length}
+            {networkDetail?.stations.length}
           </span>
           stations
         </h2>
@@ -136,7 +132,7 @@ export default function NetworkDetailView({
               processedStations.paginated.map((station: Station) => (
                 <StationListItem key={station.id} station={station} />
               ))
-            ) : networkDetail.stations.length > 0 ? (
+            ) : networkDetail && networkDetail?.stations.length > 0 ? (
               <p className="text-center text-gray-500 mt-4">
                 No stations on this page ({currentPage}).
               </p>

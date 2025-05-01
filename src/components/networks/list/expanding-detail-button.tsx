@@ -21,6 +21,8 @@ export function ExpandingDetailButton({
         'inline-flex items-center justify-center',
         'overflow-hidden',
         'h-10',
+        'min-w-10',
+        'flex-shrink-0',
 
         // --- Initial State (No Hover) ---
         'bg-transparent', // No background initially
@@ -37,7 +39,7 @@ export function ExpandingDetailButton({
         'wrappers-all duration-300 ease-in-out', // Animate all changes smoothly
 
         // --- Focus ---
-        'focus:outline-none focus:ring-2 focus:ring-grenadier-500 focus:ring-offset-2',
+        'focus:outline-none focus:ring-2 focus:ring-grenadier-500 focus:ring-offset-2 focus:rounded-full',
 
         // --- Allow external classes ---
         className
