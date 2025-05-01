@@ -1,80 +1,112 @@
 'use client';
 
-import { Marker } from '@vis.gl/react-maplibre';
-import { Map as MapLibreMap, LngLatBounds, MapLibreEvent } from 'maplibre-gl';
+import { Map, type MapRef } from '@vis.gl/react-maplibre';
+import { Map as MapLibreMap, LngLatBounds } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, {
+  useRef,
+  useMemo,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
+
 import type { Station } from '@/types/city-bikes';
 import { useNetworkDetailQuery } from '@/hooks/queries/use-network-query-detail';
-import MapWrapper from '@/components/map/map-wrapper';
+import { StationMarker } from '@/components/map/station-marker';
 
 interface Props {
   networkId: string;
+  selectedStationId: string | null;
+  onSelectStation: (stationId: string | null) => void;
 }
 
-export const NetworkDetailMap: React.FC<Props> = ({ networkId }) => {
-  const mapRef = useRef<MapLibreMap | null>(null);
+export const NetworkDetailMap: React.FC<Props> = ({
+  networkId,
+  selectedStationId,
+  onSelectStation,
+}) => {
+  const mapRefGL = useRef<MapLibreMap | null>(null);
+  const reactMapRef = useRef<MapRef>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+  const mapStyleUrl = `https://api.maptiler.com/maps/streets-v2-light/style.json?key=${mapTilerKey}`;
 
-  const { data, isLoading } = useNetworkDetailQuery(networkId);
+  const { data: networkDetail, isLoading } = useNetworkDetailQuery(networkId);
 
   const markers = useMemo(() => {
-    if (!mapRef.current) return null;
-    if (data?.stations && !isLoading) {
-      return data.stations.map((station: Station) => (
-        <Marker
-          key={`station-${station.id}`}
-          longitude={station.longitude}
-          latitude={station.latitude}
-          anchor="bottom"
-          onClick={e => {
-            e.originalEvent.stopPropagation();
-          }}
-        >
-          <div
-            className="w-3 h-3 bg-grenadier-300 rounded-full border-2 border-grenadier-400 cursor-pointer"
-            title={station.name}
-          ></div>
-        </Marker>
+    if (!isMapLoaded) return null;
+
+    if (networkDetail?.stations && !isLoading) {
+      return networkDetail.stations.map((station: Station) => (
+        <StationMarker
+          station={station}
+          key={station.id}
+          onSelectStation={onSelectStation}
+          selectedStationId={selectedStationId}
+        />
       ));
     }
     return null;
-  }, [data, isLoading]);
+  }, [
+    isMapLoaded,
+    networkDetail?.stations,
+    isLoading,
+    onSelectStation,
+    selectedStationId,
+  ]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
-    if (data?.stations && !isLoading) {
-      if (data.stations.length > 0) {
+    const map = mapRefGL.current;
+    if (!map || !isMapLoaded) return;
+    if (networkDetail?.stations && !isLoading) {
+      if (networkDetail.stations.length > 0) {
         const bounds = new LngLatBounds();
-        data.stations.forEach(station => {
+        networkDetail.stations.forEach(station => {
           bounds.extend([station.longitude, station.latitude]);
         });
         if (!bounds.isEmpty()) {
-          mapRef.current.fitBounds(bounds, {
-            padding: 60,
-            maxZoom: 16,
-            duration: 0,
-          });
+          map.fitBounds(bounds, { padding: 60, maxZoom: 16, duration: 0 });
         }
-      } else if (data.location) {
-        mapRef.current.jumpTo({
-          center: [data.location.longitude, data.location.latitude],
+      } else if (networkDetail.location) {
+        map.jumpTo({
+          center: [
+            networkDetail.location.longitude,
+            networkDetail.location.latitude,
+          ],
           zoom: 12,
         });
       }
     }
-  }, [data?.location, data?.stations, isLoading]);
+  }, [isLoading, isMapLoaded, networkDetail]);
 
-  const handleMapLoad = (evt: MapLibreEvent) => {
-    mapRef.current = evt.target;
-  };
+  const onMapLoad = useCallback((evt: maplibregl.MapLibreEvent) => {
+    mapRefGL.current = evt.target;
+    setIsMapLoaded(true);
+  }, []);
 
   return (
-    <MapWrapper isLoading={isLoading} onLoad={handleMapLoad}>
-      {markers}
-    </MapWrapper>
+    <div className={'h-full w-full relative'}>
+      {isLoading && (
+        <div className="absolute inset-0 bg-gray-200 bg-opacity-50 flex items-center justify-center z-10">
+          <p className="text-gray-700">Loading map data...</p>
+        </div>
+      )}
+
+      <Map
+        ref={reactMapRef} // Ref for the React component
+        onLoad={onMapLoad} // Get the actual map instance on load
+        style={{ width: '100%', height: '100%' }}
+        mapStyle={mapStyleUrl}
+        renderWorldCopies={false}
+        reuseMaps
+      >
+        {markers}
+      </Map>
+    </div>
   );
 };
 
-NetworkDetailMap.displayName = 'CustomMap';
+NetworkDetailMap.displayName = 'NetworkDetailMap';
 
 export default NetworkDetailMap;

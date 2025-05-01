@@ -19,15 +19,18 @@ import { useNetworkDetailQuery } from '@/hooks/queries/use-network-query-detail'
 import StationListItem from '@/components/networks/detail/station-list-item';
 import PaginationControls from '@/components/networks/detail/pagination-controls';
 import StationListHeader from '@/components/networks/detail/station-list-header';
+import { cn } from '@/lib/utils';
 
 const STATIONS_PER_PAGE = 20;
 
 interface NetworkDetailDisplayProps {
   networkId: string;
+  selectedStationId: string | null;
 }
 
 export default function NetworkDetailView({
   networkId,
+  selectedStationId,
 }: NetworkDetailDisplayProps) {
   const [sortConfig, setSortConfig] = useState<{
     key: StationSortKey | null;
@@ -120,7 +123,13 @@ export default function NetworkDetailView({
         </h2>
 
         <>
-          <div className={'sticky top-0 z-10'}>
+          <div
+            className={cn(
+              'sticky top-0 z-10 transition-all duration-300 ease-in-out',
+              !!selectedStationId ? 'py-2' : 'py-0'
+            )}
+          >
+            {' '}
             <StationListHeader
               sortConfig={sortConfig}
               onSortChange={handleSortChange}
@@ -130,7 +139,11 @@ export default function NetworkDetailView({
           <div className={'pb-6'}>
             {processedStations.paginated.length > 0 ? (
               processedStations.paginated.map((station: Station) => (
-                <StationListItem key={station.id} station={station} />
+                <StationListItem
+                  key={station.id}
+                  station={station}
+                  isHighlighted={station.id === selectedStationId}
+                />
               ))
             ) : networkDetail && networkDetail?.stations.length > 0 ? (
               <p className="text-center text-gray-500 mt-4">
