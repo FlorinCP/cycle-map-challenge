@@ -1,4 +1,3 @@
-'use client';
 import NetworksListView from '@/components/networks/list/networks-list-view';
 import CustomMap from '@/components/map/custom-map';
 import { Suspense } from 'react';
