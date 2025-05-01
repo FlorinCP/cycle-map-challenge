@@ -1,8 +1,22 @@
 import { MapPin, Briefcase } from 'lucide-react';
-import { NetworkSummary } from '@/types/city-bikes';
 import { ExpandingDetailButton } from '@/components/networks/list/expanding-detail-button';
 
-export function NetworkItem({ name, location, company, href }: NetworkSummary) {
+interface NetworkListItemProps {
+  name: string;
+  location: {
+    city: string;
+    country: string;
+  };
+  company: string | string[];
+  id: string;
+}
+
+export function NetworkItem({
+  name,
+  location,
+  company,
+  id,
+}: NetworkListItemProps) {
   const companies = Array.isArray(company) ? company : [company];
 
   return (
@@ -29,7 +43,7 @@ export function NetworkItem({ name, location, company, href }: NetworkSummary) {
               </span>
             )}
           </div>
-          <ExpandingDetailButton href={href} />
+          <ExpandingDetailButton id={id} />
         </div>
       </div>
     </div>
