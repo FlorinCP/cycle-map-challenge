@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useNetworksQuery } from '@/hooks/queries/use-network-query';
-import logo from '@/assets/svg/cycle-map-logo.svg';
+import logo from '../../../../public/cycle-map-logo.svg';
 import CountryFilter from './country-filter';
 import NetworkSearchInput from './network-search-input';
 import { PaginationNav } from '@/components/networks/list/pagination-nav';
@@ -64,9 +64,8 @@ export default function NetworksListView() {
           'sticky top-0 z-10',
           'bg-transparent',
           "after:content-['']",
-          'after:absolute after:inset-0', // Cover the entire element area
-          'after:z-[-1]', // Position it *behind* the content (inputs/select)
-          // The gradient: starts white, stays white for 90%, fades to transparent
+          'after:absolute after:inset-0',
+          'after:z-[-1]',
           'after:bg-gradient-to-b after:from-white after:via-white/100 after:via-[85%] after:to-white/0'
         )}
       >
