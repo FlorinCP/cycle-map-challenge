@@ -16,7 +16,7 @@ import {
   sortStations,
 } from '@/lib/api/utils';
 import { useNetworkDetailQuery } from '@/hooks/queries/use-network-query-detail';
-import StationListItem from '@/components/networks/detail/station-list-items';
+import StationListItem from '@/components/networks/detail/station-list-item';
 import PaginationControls from '@/components/networks/detail/pagination-controls';
 import StationListHeader from '@/components/networks/detail/station-list-header';
 
