@@ -123,7 +123,7 @@ export default function NetworkDetailView({
           stations
         </h2>
 
-        <div>
+        <>
           <div className={'sticky top-0 z-10'}>
             <StationListHeader
               sortConfig={sortConfig}
@@ -131,7 +131,7 @@ export default function NetworkDetailView({
             />
           </div>
 
-          <div>
+          <div className={'pb-6'}>
             {processedStations.paginated.length > 0 ? (
               processedStations.paginated.map((station: Station) => (
                 <StationListItem key={station.id} station={station} />
@@ -148,15 +148,13 @@ export default function NetworkDetailView({
           </div>
 
           {processedStations.totalPages > 1 && (
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={processedStations.totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={processedStations.totalPages}
+              onPageChange={setCurrentPage}
+            />
           )}
-        </div>
+        </>
       </div>
     </div>
   );
