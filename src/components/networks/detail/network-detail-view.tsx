@@ -73,7 +73,7 @@ export default function NetworkDetailView({
   }
 
   return (
-    <div className="flex flex-col w-full max-h-screen overflow-y-auto">
+    <div className="flex flex-col w-full max-h-screen min-h-screen overflow-y-auto bg-primary">
       <div
         className="flex min-h-[252px] gap-10 p-8 md:p-10 items-start flex-col self-stretch bg-cover bg-center bg-no-repeat"
         style={{
@@ -110,30 +110,19 @@ export default function NetworkDetailView({
         </div>
       </div>
 
-      {networkDetail.stations.length > 0 && (
-        <div className="p-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          {/* Use the actual SortControls component */}
-          <SortControls
-            sortConfig={sortConfig}
-            onSortChange={handleSortChange}
-          />
-        </div>
-      )}
-
-      {/* Stations List */}
-      <div className="flex-grow p-4 space-y-2">
-        <h2 className="text-lg font-semibold mb-2 sticky top-0 bg-white dark:bg-gray-900 py-1">
-          Stations ({networkDetail.stations.length})
+      <div className={'px-10 py-2 flex flex-col gap-3'}>
+        <h2 className="text-lg font-semibold text-white">
+          All
+          <span className={"text-grenadier-400 mx-2 border border-grenadier-400 rounded-md px-1.5 py-1 text-sm"}>{networkDetail.stations.length}</span>
+          stations
         </h2>
+
+        <div>
+
         {processedStations.paginated.length > 0 ? (
-          processedStations.paginated.map(
-            (
-              station: Station // Ensure type here
-            ) => (
-              // Use the actual StationListItem component
-              <StationListItem key={station.id} station={station} />
-            )
-          )
+          processedStations.paginated.map((station: Station) => (
+            <StationListItem key={station.id} station={station} />
+          ))
         ) : networkDetail.stations.length > 0 ? (
           <p className="text-center text-gray-500 mt-4">
             No stations on this page ({currentPage}).
@@ -143,19 +132,19 @@ export default function NetworkDetailView({
             No station data available for this network.
           </p>
         )}
-      </div>
-
-      {/* Station Pagination Footer */}
-      {processedStations.totalPages > 1 && (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
-          {/* Use the actual PaginationControls component */}
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={processedStations.totalPages}
-            onPageChange={setCurrentPage} // Pass the state setter directly
-          />
         </div>
-      )}
+
+
+        {processedStations.totalPages > 1 && (
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={processedStations.totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
