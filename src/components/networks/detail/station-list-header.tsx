@@ -17,7 +17,7 @@ export default function StationListHeader({
   return (
     <div
       className={
-        'w-full flex justify-between items-center border-b border-white p-1'
+        'w-full flex justify-between items-center border-b border-white p-2 bg-primary'
       }
     >
       <p

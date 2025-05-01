@@ -32,4 +32,4 @@ tooltip
 pagination --> modify buttons as design
 check navigation lag
 animation on page swich
-sticky header
+- [x] sticky header

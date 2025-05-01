@@ -124,37 +124,39 @@ export default function NetworkDetailView({
         </h2>
 
         <div>
-          <StationListHeader
-            sortConfig={sortConfig}
-            onSortChange={handleSortChange}
-          />
-        </div>
-
-        <div>
-          {processedStations.paginated.length > 0 ? (
-            processedStations.paginated.map((station: Station) => (
-              <StationListItem key={station.id} station={station} />
-            ))
-          ) : networkDetail.stations.length > 0 ? (
-            <p className="text-center text-gray-500 mt-4">
-              No stations on this page ({currentPage}).
-            </p>
-          ) : (
-            <p className="text-center text-gray-500 mt-4">
-              No station data available for this network.
-            </p>
-          )}
-        </div>
-
-        {processedStations.totalPages > 1 && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={processedStations.totalPages}
-              onPageChange={setCurrentPage}
+          <div className={'sticky top-0 z-10'}>
+            <StationListHeader
+              sortConfig={sortConfig}
+              onSortChange={handleSortChange}
             />
           </div>
-        )}
+
+          <div>
+            {processedStations.paginated.length > 0 ? (
+              processedStations.paginated.map((station: Station) => (
+                <StationListItem key={station.id} station={station} />
+              ))
+            ) : networkDetail.stations.length > 0 ? (
+              <p className="text-center text-gray-500 mt-4">
+                No stations on this page ({currentPage}).
+              </p>
+            ) : (
+              <p className="text-center text-gray-500 mt-4">
+                No station data available for this network.
+              </p>
+            )}
+          </div>
+
+          {processedStations.totalPages > 1 && (
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={processedStations.totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
