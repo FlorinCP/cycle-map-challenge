@@ -18,7 +18,6 @@ export default function NetworkList({ networksToDisplay }: NetworkListProps) {
             name={network.name}
             location={network.location}
             company={network.company}
-            href={network.href}
             id={network.id}
           />
         ))

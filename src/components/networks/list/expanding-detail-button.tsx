@@ -3,17 +3,20 @@ import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ExpandingDetailButtonProps {
-  href: string;
+  id: string;
   className?: string;
 }
 
 export function ExpandingDetailButton({
-  href,
+  id,
   className,
 }: ExpandingDetailButtonProps) {
   return (
     <Link
-      href={href}
+      href={{
+        pathname: '/networks/[id]',
+        query: { id: id },
+      }}
       className={cn(
         // --- Group Setup & Base Layout ---
         'inline-flex items-center justify-center',
