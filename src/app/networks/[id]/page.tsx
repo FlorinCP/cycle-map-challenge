@@ -22,14 +22,12 @@ export default function NetworkDetailPage({
           )}
         </div>
 
-        <div className="h-full w-full">
-          <CustomMap
-            key={id}
-            initialLatitude={45}
-            initialLongitude={10}
-            initialZoom={5}
-          />
-        </div>
+        <CustomMap
+          key={id}
+          initialLatitude={45}
+          initialLongitude={10}
+          initialZoom={5}
+        />
       </div>
     </Suspense>
   );
