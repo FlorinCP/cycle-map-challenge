@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 export default function NetworksPage() {
   return (
     <Suspense fallback={<div className="h-full w-full">Loading...</div>}>
-      <div className="grid grid-cols-1 md:grid-cols-[40%_60%] min-h-screen max-h-screen w-full scrollbar-hide">
+      <div className="grid grid-cols-1 md:grid-cols-[30%_70%] min-h-screen max-h-screen w-full scrollbar-hide">
         <NetworksListView />
         <div className="h-full w-full">
           <CustomMap

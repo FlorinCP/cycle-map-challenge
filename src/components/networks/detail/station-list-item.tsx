@@ -13,13 +13,13 @@ export default function StationListItem({
   return (
     <div
       className={cn(
-        'group px-2 flex py-4 justify-between items-center border-b border-dashed border-white/50 text-white hover:bg-white/10 transition-all duration-300',
+        'group px-2 flex py-4 justify-between items-center border-b border-dashed border-white/50 text-white hover:bg-white/10 wrappers-all duration-300',
         isHighlighted && 'bg-white/10'
       )}
     >
       <p
         className={cn(
-          'font-medium truncate text-base leading-7 transition-all duration-300 group-hover:pl-2',
+          'font-medium truncate text-base leading-7 wrappers-all duration-300 group-hover:pl-2',
           isHighlighted && 'pl-2'
         )}
         title={station.name}

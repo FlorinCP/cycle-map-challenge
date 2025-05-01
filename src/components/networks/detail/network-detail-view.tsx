@@ -84,7 +84,7 @@ export default function NetworkDetailView({
       >
         <Link
           href="/networks"
-          className="text-grenadier-500 h-10 w-10 rounded-full bg-white grid place-content-center"
+          className="text-grenadier-500 h-10 w-10 rounded-full bg-white grid place-content-center flex-shrink-0"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
