@@ -25,11 +25,11 @@ The text from above was generated based on my findings about the company, my who
 - Had to downgrade from React 19 -> 18 because of some peer dependencies.
 - This was bothering me a lot since the begining, normaly, i would use Next 14 and React 18 but I wanted to see what the new ones have to offer, risky decision since not as much resources ( StackOvf, LLMs etc.) but I quickly changed back because I dont have the luxury to experiment now.
 
-
 Detail View :
 hover on item
 tooltip
 pagination --> modify buttons as design
 check navigation lag
 animation on page swich
+
 - [x] sticky header
