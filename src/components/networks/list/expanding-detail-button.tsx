@@ -14,8 +14,7 @@ export function ExpandingDetailButton({
   return (
     <Link
       href={{
-        pathname: '/networks/[id]',
-        query: { id: id },
+        pathname: `/networks/${id}`,
       }}
       className={cn(
         // --- Group Setup & Base Layout ---

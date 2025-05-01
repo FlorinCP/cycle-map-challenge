@@ -33,3 +33,5 @@ check navigation lag
 animation on page swich
 
 - [x] sticky header
+
+I was experiencing extreme long loading time between page navigation, so downgrade to Next 14 ...
