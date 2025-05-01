@@ -41,7 +41,7 @@ export default function CountryFilter() {
           className="text-primary placeholder:text-primary"
         />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className={'h-[400px] overflow-y-auto'}>
         <SelectItem value="ALL">All Countries</SelectItem>
         {countries.data.map(country => (
           <SelectItem key={country.code} value={country.code}>

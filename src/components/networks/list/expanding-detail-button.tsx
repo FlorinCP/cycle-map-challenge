@@ -21,6 +21,8 @@ export function ExpandingDetailButton({
         'inline-flex items-center justify-center',
         'overflow-hidden',
         'h-10',
+        'min-w-10',
+        'flex-shrink-0',
 
         // --- Initial State (No Hover) ---
         'bg-transparent', // No background initially
@@ -34,10 +36,10 @@ export function ExpandingDetailButton({
         'group-hover:rounded-[43px]',
 
         // --- Transitions ---
-        'transition-all duration-300 ease-in-out', // Animate all changes smoothly
+        'wrappers-all duration-300 ease-in-out', // Animate all changes smoothly
 
         // --- Focus ---
-        'focus:outline-none focus:ring-2 focus:ring-grenadier-500 focus:ring-offset-2',
+        'focus:outline-none focus:ring-2 focus:ring-grenadier-500 focus:ring-offset-2 focus:rounded-full',
 
         // --- Allow external classes ---
         className
@@ -50,7 +52,7 @@ export function ExpandingDetailButton({
           // --- Initial State ---
           'w-0', // Start with zero width
           'opacity-0', // Start invisible
-          'whitespace-nowrap', // Prevent wrapping during transition
+          'whitespace-nowrap', // Prevent wrapping during wrappers
 
           // --- Hover State (Triggered by parent 'group') ---
           'group-hover:w-auto', // Expand width to fit content on group-hover
@@ -61,7 +63,7 @@ export function ExpandingDetailButton({
           'leading-7',
 
           // --- Transitions ---
-          'transition-all duration-300 ease-in-out'
+          'wrappers-all duration-300 ease-in-out'
         )}
         aria-hidden="true"
       >
@@ -73,7 +75,7 @@ export function ExpandingDetailButton({
           'h-5 w-5',
           'text-grenadier-500',
           'group-hover:',
-          'transition-colors duration-300 ease-in-out'
+          'wrappers-colors duration-300 ease-in-out'
         )}
       />
     </Link>
