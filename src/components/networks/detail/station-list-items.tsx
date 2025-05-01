@@ -15,10 +15,10 @@ export default function StationListItem({ station }: StationListItemProps) {
       </p>
 
       <div className={'flex items-center'}>
-        <div className="flex items-center w-28 justify-center">
+        <div className="flex items-center w-32 justify-center">
           <span className="font-bold ">{station.free_bikes ?? 'N/A'}</span>
         </div>
-        <div className="flex items-center w-28 justify-center">
+        <div className="flex items-center w-32 justify-center">
           <span className="font-bold ">{station.empty_slots ?? 'N/A'}</span>
         </div>
       </div>

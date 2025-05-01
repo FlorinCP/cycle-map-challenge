@@ -18,7 +18,7 @@ import {
 import { useNetworkDetailQuery } from '@/hooks/queries/use-network-query-detail';
 import StationListItem from '@/components/networks/detail/station-list-items';
 import PaginationControls from '@/components/networks/detail/pagination-controls';
-import SortControls from '@/components/networks/detail/sort-controls';
+import StationListHeader from '@/components/networks/detail/station-list-header';
 
 const STATIONS_PER_PAGE = 20;
 
@@ -113,27 +113,38 @@ export default function NetworkDetailView({
       <div className={'px-10 py-2 flex flex-col gap-3'}>
         <h2 className="text-lg font-semibold text-white">
           All
-          <span className={"text-grenadier-400 mx-2 border border-grenadier-400 rounded-md px-1.5 py-1 text-sm"}>{networkDetail.stations.length}</span>
+          <span
+            className={
+              'text-grenadier-400 mx-2 border border-grenadier-400 rounded-md px-1.5 py-1 text-sm'
+            }
+          >
+            {networkDetail.stations.length}
+          </span>
           stations
         </h2>
 
         <div>
-
-        {processedStations.paginated.length > 0 ? (
-          processedStations.paginated.map((station: Station) => (
-            <StationListItem key={station.id} station={station} />
-          ))
-        ) : networkDetail.stations.length > 0 ? (
-          <p className="text-center text-gray-500 mt-4">
-            No stations on this page ({currentPage}).
-          </p>
-        ) : (
-          <p className="text-center text-gray-500 mt-4">
-            No station data available for this network.
-          </p>
-        )}
+          <StationListHeader
+            sortConfig={sortConfig}
+            onSortChange={handleSortChange}
+          />
         </div>
 
+        <div>
+          {processedStations.paginated.length > 0 ? (
+            processedStations.paginated.map((station: Station) => (
+              <StationListItem key={station.id} station={station} />
+            ))
+          ) : networkDetail.stations.length > 0 ? (
+            <p className="text-center text-gray-500 mt-4">
+              No stations on this page ({currentPage}).
+            </p>
+          ) : (
+            <p className="text-center text-gray-500 mt-4">
+              No station data available for this network.
+            </p>
+          )}
+        </div>
 
         {processedStations.totalPages > 1 && (
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0">

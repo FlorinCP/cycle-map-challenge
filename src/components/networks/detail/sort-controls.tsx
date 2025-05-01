@@ -1,8 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import type { StationSortKey, SortDirection } from '@/types/city-bikes';
-import { ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowDownUp } from 'lucide-react';
 
 interface SortControlsProps {
   sortConfig: { key: StationSortKey | null; direction: SortDirection };
@@ -24,7 +23,6 @@ export default function SortControls({
 }: SortControlsProps) {
   const handleSort = (key: StationSortKey) => {
     let newDirection: SortDirection = 'asc';
-    // If clicking the same key, toggle direction; otherwise, default to 'asc'
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
       newDirection = 'desc';
     }
@@ -33,44 +31,33 @@ export default function SortControls({
 
   const renderSortIcon = (key: StationSortKey) => {
     if (sortConfig.key !== key) {
-      return <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      return <ArrowDownUp className="h-4 w-4" />;
     }
     return sortConfig.direction === 'asc' ? (
-      <ArrowUp className="ml-2 h-4 w-4 text-blue-600" />
+      <ArrowUp className="h-4 w-4 " />
     ) : (
-      <ArrowDown className="ml-2 h-4 w-4 text-blue-600" />
+      <ArrowDown className="h-4 w-4 " />
     );
   };
 
   return (
-    <div className="flex items-center space-x-2">
-      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-        Sort by:
-      </span>
+    <div className="flex items-center text-white">
       {SORT_OPTIONS.map(option => (
-        <Button
+        <div
+          className={'flex gap-2 items-center cursor-pointer w-32'}
           key={option.key}
-          variant={sortConfig.key === option.key ? 'secondary' : 'outline'}
-          size="sm"
           onClick={() => handleSort(option.key)}
-          className="text-xs h-7 px-2"
         >
-          {option.label}
+          <p
+            className={
+              'text-white text-center font-sans text-sm font-medium leading-5 tracking-wider uppercase'
+            }
+          >
+            {option.label}
+          </p>
           {renderSortIcon(option.key)}
-        </Button>
+        </div>
       ))}
-      {/* Optional: Button to clear sort */}
-      {sortConfig.key && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onSortChange({ key: null, direction: 'asc' })}
-          className="text-xs h-7 px-2"
-          title="Clear sort"
-        >
-          Clear
-        </Button>
-      )}
     </div>
   );
 }
