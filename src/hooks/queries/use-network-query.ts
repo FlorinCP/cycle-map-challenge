@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
-import type { NetworkSummary, NetworksListResponse } from '@/types/city-bikes';
+import type { NetworksListResponse, NetworkSummary } from '@/types/city-bikes';
 import { networkQueryKeys } from '@/lib/api/query-keys';
 
 const BASE_URL = 'https://api.citybik.es/v2';
 
-/**
- * Async function specifically for fetching all networks.
- * This keeps the actual fetch logic separate from the hook itself.
- */
-const fetchAllNetworks = async (): Promise<NetworkSummary[]> => {
-  const response = await fetch(`${BASE_URL}/networks`); // Using default Next.js fetch cache behavior here
+const fetchAllNetworks = async (
+  fields?: (keyof NetworkSummary)[]
+): Promise<NetworkSummary[]> => {
+  const queryParams = fields?.length ? `?fields=${fields.join(',')}` : '';
+
+  const response = await fetch(`${BASE_URL}/networks${queryParams}`);
 
   if (!response.ok) {
     const errorBody = await response
@@ -25,18 +25,30 @@ const fetchAllNetworks = async (): Promise<NetworkSummary[]> => {
   }
 
   const data: NetworksListResponse = await response.json();
-  console.log(`Fetched ${data.networks?.length ?? 0} networks successfully.`);
   return data.networks || [];
 };
 
-/**
- * TanStack Query hook to fetch and manage the state for the list of all bicycle networks.
- */
 export function useNetworksQuery() {
-  return useQuery<NetworkSummary[], Error>({
-    queryKey: networkQueryKeys.all,
-    queryFn: fetchAllNetworks,
-    staleTime: 1000 * 60 * 15,
-    gcTime: 1000 * 60 * 30,
-  });
+  const fields: (keyof NetworkSummary)[] = [
+    'id',
+    'name',
+    'company',
+    'location',
+  ];
+
+  const { data, isLoading, isError, error } = useQuery<NetworkSummary[], Error>(
+    {
+      queryKey: [...networkQueryKeys.all, { fields }],
+      queryFn: () => fetchAllNetworks(fields),
+      staleTime: 1000 * 60 * 15,
+      gcTime: 1000 * 60 * 30,
+    }
+  );
+
+  return {
+    data,
+    isLoading,
+    isError,
+    error,
+  };
 }

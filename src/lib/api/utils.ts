@@ -1,8 +1,8 @@
 import type {
   NetworkSummary,
+  SortDirection,
   Station,
   StationSortKey,
-  SortDirection,
 } from '@/types/city-bikes';
 
 /**
@@ -19,14 +19,12 @@ export function filterNetworks(
   countryCode?: string | null,
   searchTerm?: string | null
 ): NetworkSummary[] {
-  // Return original array if no filters are applied
   if (!countryCode && !searchTerm?.trim()) {
     return networks;
   }
 
-  let filteredData = [...networks]; // Work on a copy
+  let filteredData = [...networks];
 
-  // 1. Filter by Country
   if (countryCode) {
     const upperCountryCode = countryCode.toUpperCase();
     filteredData = filteredData.filter(
@@ -34,26 +32,21 @@ export function filterNetworks(
     );
   }
 
-  // 2. Filter by Search Term
   if (searchTerm) {
     const lowerSearchTerm = searchTerm.toLowerCase().trim();
     if (lowerSearchTerm) {
-      // Only filter if search term is not empty
       filteredData = filteredData.filter(network => {
-        // Check network name
         const nameMatch = network.name.toLowerCase().includes(lowerSearchTerm);
         if (nameMatch) return true;
 
-        // Check company (can be string or array)
         const companies = Array.isArray(network.company)
           ? network.company
           : network.company // Handle potential null/undefined company? API docs suggest string | string[]
             ? [network.company]
             : []; // Default to empty array if company is falsy
-        const companyMatch = companies.some(
+        return companies.some(
           company => company?.toLowerCase().includes(lowerSearchTerm) // Safe navigation
         );
-        return companyMatch;
       });
     }
   }
