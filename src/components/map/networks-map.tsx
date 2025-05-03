@@ -270,11 +270,11 @@ export const NetworksMap: React.FC<Props> = ({
               id="network-markers"
               type="circle"
               paint={{
-                'circle-color': '#1E40AF',
+                'circle-color': 'rgba(247, 169, 122, 1)',
                 'circle-radius': 6,
-                'circle-stroke-width': 1,
-                'circle-stroke-color': '#ffffff',
-                'circle-opacity': 0.8,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': 'rgba(243, 123, 68, 1)',
+                'circle-opacity': 1,
               }}
             />
           </Source>
