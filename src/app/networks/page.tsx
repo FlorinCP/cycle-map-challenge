@@ -1,4 +1,4 @@
-import NetworksListView from '@/components/networks/list/networks-list-view';
+import NetworksListView from '@/components/networks/list/newtork-list/networks-list-view';
 import { Suspense } from 'react';
 import NetworksMap from '@/components/map/networks-map';
 import { LoadingScreen } from '@/components/ui/spinner';

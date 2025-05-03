@@ -1,5 +1,5 @@
 import { MapPin, Briefcase } from 'lucide-react';
-import { ExpandingDetailButton } from '@/components/networks/list/expanding-detail-button';
+import { ExpandingDetailButton } from '@/components/networks/list/newtork-list/expanding-detail-button';
 
 interface NetworkListItemProps {
   name: string;
@@ -21,7 +21,7 @@ export function NetworkItem({
 
   return (
     <div className="border-b border-accent py-4 flex gap-1 flex-col px-6 hover:bg-accent group">
-      <h2 className="self-stretch justify-start text-torea-bay-800 text-xl font-bold">
+      <h2 className="self-stretch justify-start text-primary text-xl font-bold">
         {name}
       </h2>
       <div>
