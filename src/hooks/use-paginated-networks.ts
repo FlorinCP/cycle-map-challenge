@@ -6,19 +6,14 @@ import {
 } from '@/api';
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-
-const ITEMS_PER_PAGE = 15;
+import { NETWORK_ITEMS_PER_PAGE, SEARCH_PARAMS } from '@/types/search-params';
 
 export function usePaginatedNetworksList() {
   const searchParams = useSearchParams();
 
-  const countryCode = searchParams.get('country');
-  const searchTerm = searchParams.get('search');
-  const currentPage = useMemo(() => {
-    const pageParam = searchParams.get('page');
-    const pageNum = parseInt(pageParam || '1', 10);
-    return isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
-  }, [searchParams]);
+  const countryCode = searchParams.get(SEARCH_PARAMS.COUNTRY);
+  const searchTerm = searchParams.get(SEARCH_PARAMS.SEARCH);
+  const page = searchParams.get(SEARCH_PARAMS.PAGE);
 
   const { data: allNetworks, isLoading } = useListNetworksQuery();
 
@@ -28,17 +23,20 @@ export function usePaginatedNetworksList() {
   }, [allNetworks, countryCode, searchTerm]);
 
   const paginatedNetworks = useMemo(() => {
-    return paginateItems(filteredNetworks, currentPage, ITEMS_PER_PAGE);
-  }, [filteredNetworks, currentPage]);
+    return paginateItems(
+      filteredNetworks,
+      Number(page),
+      NETWORK_ITEMS_PER_PAGE
+    );
+  }, [filteredNetworks, page]);
 
   const totalPages = useMemo(() => {
-    return calculateTotalPages(filteredNetworks.length, ITEMS_PER_PAGE);
+    return calculateTotalPages(filteredNetworks.length, NETWORK_ITEMS_PER_PAGE);
   }, [filteredNetworks.length]);
 
   return {
     networks: paginatedNetworks,
     totalPages,
-    currentPage,
     isLoading,
     countryCode,
     searchTerm,

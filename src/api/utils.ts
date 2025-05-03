@@ -41,11 +41,11 @@ export function filterNetworks(
 
         const companies = Array.isArray(network.company)
           ? network.company
-          : network.company // Handle potential null/undefined company? API docs suggest string | string[]
+          : network.company
             ? [network.company]
-            : []; // Default to empty array if company is falsy
-        return companies.some(
-          company => company?.toLowerCase().includes(lowerSearchTerm) // Safe navigation
+            : [];
+        return companies.some(company =>
+          company?.toLowerCase().includes(lowerSearchTerm)
         );
       });
     }
@@ -69,14 +69,12 @@ export function paginateItems<T>(
   itemsPerPage: number
 ): T[] {
   if (!Array.isArray(items) || itemsPerPage <= 0) {
-    return []; // Return empty for invalid input
+    return [];
   }
-  // Ensure page is a valid positive number, default to 1
   const safePage = Math.max(1, isNaN(page) ? 1 : page);
   const startIndex = (safePage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
 
-  // Slice doesn't throw errors for out-of-bounds, returns what it can
   return items.slice(startIndex, endIndex);
 }
 
@@ -109,23 +107,21 @@ export function calculateTotalPages(
 export function sortStations(
   stations: Station[],
   sortBy: StationSortKey | null | undefined,
-  direction: SortDirection = 'asc' // Default direction
+  direction: SortDirection = 'asc'
 ): Station[] {
-  // If no sort key is provided, return the original array (or a copy)
   if (!sortBy) {
-    return [...stations]; // Return a copy to maintain immutability principle
+    return [...stations];
   }
 
-  const sortedData = [...stations]; // Work on a copy
+  const sortedData = [...stations];
 
   sortedData.sort((a, b) => {
     const valueA = a[sortBy];
     const valueB = b[sortBy];
 
-    // Handle potential non-numeric values if necessary, though these should be numbers
-    const comparison = (valueA ?? 0) - (valueB ?? 0); // Default null/undefined to 0 for comparison
+    const comparison = (valueA ?? 0) - (valueB ?? 0);
 
-    return direction === 'asc' ? comparison : comparison * -1; // Apply direction
+    return direction === 'asc' ? comparison : comparison * -1;
   });
 
   return sortedData;

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
   Pagination,
@@ -11,27 +11,28 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-  usePaginationRange,
-  DOTS,
-} from '@/hooks/pagination/use-pagination-range';
+import { usePaginationRange, DOTS } from '@/hooks/use-pagination-range';
 import { cn } from '@/lib/utils';
+import { SEARCH_PARAMS } from '@/types/search-params';
 
 interface PaginationNavProps {
-  currentPage: number;
   totalPages: number;
   pageSize: number;
   siblingCount?: number;
 }
 
 export function PaginationNav({
-  currentPage,
   totalPages,
   pageSize,
   siblingCount = 1,
 }: PaginationNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const page = searchParams.get(SEARCH_PARAMS.PAGE);
+  const currentPage = useMemo(() => {
+    const pageNum = parseInt(page || '1', 10);
+    return isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
+  }, [page]);
 
   const paginationRange = usePaginationRange({
     currentPage,
