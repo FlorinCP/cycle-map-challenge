@@ -1,6 +1,6 @@
 'use client';
 
-import { Marker, type MapRef } from '@vis.gl/react-maplibre';
+import { type MapRef } from '@vis.gl/react-maplibre';
 import { LngLatBounds } from 'maplibre-gl';
 import React, { useRef, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -8,7 +8,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import type { NetworkSummary } from '@/types/city-bikes';
 import { filterNetworks } from '@/api/utils';
 import MapWrapper from '@/components/map/map-wrapper';
-import { useListNetworksQuery } from '@/api';
+import { useListNetworksQuery, usePrefetchNetworkDetail } from '@/api';
+import { NetworkMarker } from '@/components/map/network-marker';
 
 interface Props {
   initialLongitude?: number;
@@ -30,6 +31,8 @@ export const NetworksMap: React.FC<Props> = ({
   initialZoom = DefaultMapInitialState.zoom,
 }) => {
   const searchParams = useSearchParams();
+  const prefetchNetworkDetail = usePrefetchNetworkDetail();
+
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
 
@@ -40,8 +43,8 @@ export const NetworksMap: React.FC<Props> = ({
     useListNetworksQuery();
 
   const handleNetworkMarkerClick = useCallback(
-    (network: NetworkSummary) => {
-      router.push(`/networks/${network.id}`);
+    (id: string) => {
+      router.push(`/networks/${id}`);
     },
     [router]
   );
@@ -50,21 +53,12 @@ export const NetworksMap: React.FC<Props> = ({
     if (allNetworks && !isLoadingNetworks) {
       const filtered = filterNetworks(allNetworks, countryCode, searchTerm);
       return filtered.map((network: NetworkSummary) => (
-        <Marker
-          key={`network-${network.id}`}
-          longitude={network.location.longitude}
-          latitude={network.location.latitude}
-          anchor="bottom"
-          onClick={e => {
-            e.originalEvent.stopPropagation();
-            handleNetworkMarkerClick(network);
-          }}
-        >
-          <div
-            className="w-3 h-3 bg-grenadier-300 rounded-full border-2 border-grenadier-400 cursor-pointer"
-            title={network.name}
-          ></div>
-        </Marker>
+        <NetworkMarker
+          key={network.id}
+          network={network}
+          onClick={() => handleNetworkMarkerClick(network.id)}
+          onMouseEnter={() => prefetchNetworkDetail(network.id)}
+        />
       ));
     }
     return null;
@@ -74,6 +68,7 @@ export const NetworksMap: React.FC<Props> = ({
     countryCode,
     searchTerm,
     handleNetworkMarkerClick,
+    prefetchNetworkDetail,
   ]);
 
   useEffect(() => {
