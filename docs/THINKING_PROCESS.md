@@ -35,3 +35,8 @@ animation on page swich
 - [x] sticky header
 
 I was experiencing extreme long loading time between page navigation, so downgrade to Next 14 ...
+
+Regarding pagination and search on the server, it seems like the Api doesnt support that
+https://github.com/eskerda/citybikes-api/blob/master/api/views.py
+
+62.9 kb -> 45.1 kb

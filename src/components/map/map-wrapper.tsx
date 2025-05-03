@@ -42,6 +42,8 @@ export const MapWrapper = forwardRef<MapRef, Props>(
           style={{ width: '100%', height: '100%' }}
           mapStyle={mapStyleUrl}
           renderWorldCopies={false}
+          maxTileCacheSize={100}
+          refreshExpiredTiles={false}
           reuseMaps
         >
           {children}

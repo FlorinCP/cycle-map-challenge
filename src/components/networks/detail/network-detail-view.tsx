@@ -10,16 +10,12 @@ import type {
   SortDirection,
 } from '@/types/city-bikes';
 
-import {
-  calculateTotalPages,
-  paginateItems,
-  sortStations,
-} from '@/lib/api/utils';
-import { useNetworkDetailQuery } from '@/hooks/queries/use-network-query-detail';
+import { calculateTotalPages, paginateItems, sortStations } from '@/api/utils';
 import StationListItem from '@/components/networks/detail/station-list-item';
 import PaginationControls from '@/components/networks/detail/pagination-controls';
 import StationListHeader from '@/components/networks/detail/station-list-header';
 import { cn } from '@/lib/utils';
+import { useGetNetworkDetailQuery } from '@/api';
 
 const STATIONS_PER_PAGE = 20;
 
@@ -38,7 +34,7 @@ export default function NetworkDetailView({
   }>({ key: null, direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: networkDetail } = useNetworkDetailQuery(networkId);
+  const { data: networkDetail } = useGetNetworkDetailQuery(networkId);
 
   const handleSortChange = (newConfig: {
     key: StationSortKey | null;

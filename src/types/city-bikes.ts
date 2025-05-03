@@ -12,7 +12,6 @@ export interface NetworkLocation {
   latitude: number;
   city: string;
   longitude: number;
-  /** Country code, e.g., "FRA", "US" */
   country: string;
 }
 
@@ -20,18 +19,21 @@ export interface NetworkLocation {
  * Represents a single network summary in the list response.
  * Corresponds to the `/v2/networks` endpoint structure.
  */
-export interface NetworkSummary {
-  /** Can be a single string or an array of strings (flexible based on API response variations) */
-  company: string | string[];
-  /** API endpoint path for this specific network, e.g., "/v2/networks/velib" */
-  href: string;
-  /** Unique identifier for the network, e.g., "velib" */
+export interface NetworkResponse {
   id: string;
-  /** Geographic location of the network's primary area */
-  location: NetworkLocation;
-  /** Display name of the network */
   name: string;
+  company: string | string[];
+  location: NetworkLocation;
+  href: string;
+  gbfs_href?: string;
 }
+
+/**
+ * Represents a summary of a bike network.
+ * This is a simplified version of the full NetworkResponse, focusing on essential fields.
+ * Useful for displaying in lists or summaries.
+ */
+export type NetworkSummary = Omit<NetworkResponse, 'href' | 'gbfs_href'>;
 
 /**
  * Represents the response structure for the `/v2/networks` endpoint.
@@ -113,10 +115,8 @@ export interface Vehicle {
   id: string;
   latitude: number;
   longitude: number;
-  /** Timestamp of the last update for this vehicle's location (ISO 8601 format) */
   timestamp: string;
   extra: VehicleExtra;
-  /** Type of the vehicle */
   kind: VehicleKind;
 }
 
@@ -128,13 +128,9 @@ export interface NetworkDetail {
   id: string;
   name: string;
   location: NetworkLocation;
-  /** API endpoint path for this specific network */
   href: string;
-  /** Usually an array of strings for the operating company/companies */
   company: string[];
-  /** List of stations in the network */
   stations: Station[];
-  /** Optional list of roaming vehicles, may be undefined if not available */
   vehicles?: Vehicle[];
 }
 
