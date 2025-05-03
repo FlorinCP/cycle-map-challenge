@@ -2,7 +2,13 @@
 
 import { Map, type MapRef } from '@vis.gl/react-maplibre';
 import { LngLatBounds } from 'maplibre-gl';
-import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import React, {
+  useRef,
+  useEffect,
+  useCallback,
+  useState,
+  useMemo,
+} from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -27,10 +33,10 @@ const DefaultMapInitialState = {
 };
 
 export const NetworksMap: React.FC<Props> = ({
-                                               initialLatitude = DefaultMapInitialState.latitude,
-                                               initialLongitude = DefaultMapInitialState.longitude,
-                                               initialZoom = DefaultMapInitialState.zoom,
-                                             }) => {
+  initialLatitude = DefaultMapInitialState.latitude,
+  initialLongitude = DefaultMapInitialState.longitude,
+  initialZoom = DefaultMapInitialState.zoom,
+}) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
@@ -51,12 +57,10 @@ export const NetworksMap: React.FC<Props> = ({
     [router]
   );
 
-  // Calculate filtered networks with progressive search
   const { filteredNetworks, searchRadius } = useMemo(() => {
     if (!allNetworks || isLoadingNetworks)
       return { filteredNetworks: [], searchRadius: 0 };
 
-    // If user location is provided, use progressive search
     if (userLat && userLng) {
       const result = findNetworksProgressively(
         allNetworks,
@@ -64,7 +68,7 @@ export const NetworksMap: React.FC<Props> = ({
         parseFloat(userLng),
         countryCode,
         searchTerm,
-        [10, 50, 100, 200] // Search radii in kilometers
+        [10, 50, 100, 200]
       );
       return {
         filteredNetworks: result.networks,
@@ -72,7 +76,6 @@ export const NetworksMap: React.FC<Props> = ({
       };
     }
 
-    // Otherwise, use standard filtering
     return {
       filteredNetworks: filterNetworks(allNetworks, countryCode, searchTerm),
       searchRadius: 0,
@@ -86,7 +89,6 @@ export const NetworksMap: React.FC<Props> = ({
     userLng,
   ]);
 
-  // Set up event handlers
   const setupEventHandlers = useCallback(
     (map: maplibregl.Map) => {
       // Initialize popup
@@ -96,7 +98,6 @@ export const NetworksMap: React.FC<Props> = ({
         offset: 15,
       });
 
-      // Click on marker
       map.on('click', 'network-markers', e => {
         if (e.features && e.features.length > 0) {
           const feature = e.features[0];
@@ -109,7 +110,6 @@ export const NetworksMap: React.FC<Props> = ({
         }
       });
 
-      // Change cursor on hover
       map.on('mouseenter', 'network-markers', () => {
         map.getCanvas().style.cursor = 'pointer';
       });
@@ -118,7 +118,6 @@ export const NetworksMap: React.FC<Props> = ({
         map.getCanvas().style.cursor = '';
       });
 
-      // Show popup on hover
       map.on('mouseenter', 'network-markers', e => {
         if (e.features && e.features.length > 0) {
           const feature = e.features[0];
@@ -150,11 +149,9 @@ export const NetworksMap: React.FC<Props> = ({
     [handleNetworkMarkerClick]
   );
 
-  // Initialize map data
   const initializeMapData = useCallback(
     (map: maplibregl.Map) => {
       if (!filteredNetworks || filteredNetworks.length === 0) {
-        // Remove existing layers and source if no networks
         if (map.getLayer('network-markers')) map.removeLayer('network-markers');
         if (map.getSource('networks')) map.removeSource('networks');
         return;
@@ -180,17 +177,14 @@ export const NetworksMap: React.FC<Props> = ({
         })),
       };
 
-      // Remove existing layers and source if they exist
       if (map.getLayer('network-markers')) map.removeLayer('network-markers');
       if (map.getSource('networks')) map.removeSource('networks');
 
-      // Add source without clustering
       map.addSource('networks', {
         type: 'geojson',
         data: geojson,
       });
 
-      // Add markers layer
       map.addLayer({
         id: 'network-markers',
         type: 'circle',
@@ -204,7 +198,6 @@ export const NetworksMap: React.FC<Props> = ({
         },
       });
 
-      // Set up event handlers
       setupEventHandlers(map);
     },
     [filteredNetworks, setupEventHandlers]
@@ -219,45 +212,41 @@ export const NetworksMap: React.FC<Props> = ({
     }
   }, [initializeMapData]);
 
-  // Update map data when filtered networks change
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) return;
 
     const map = mapRef.current.getMap();
     if (!map) return;
 
-    // Re-initialize map data with the current filteredNetworks
     initializeMapData(map);
   }, [mapLoaded, filteredNetworks, initializeMapData]);
 
-  // Handle bounds fitting with proper zoom levels
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) return;
 
     const map = mapRef.current.getMap();
     if (!map) return;
 
-    // Use setTimeout to ensure the map is ready for animations
     const timeoutId = setTimeout(() => {
       if (filteredNetworks.length > 0) {
         const bounds = new LngLatBounds();
 
-        // If user location is provided, include it in the bounds
         if (userLat && userLng) {
           bounds.extend([parseFloat(userLng), parseFloat(userLat)]);
         }
 
         filteredNetworks.forEach(network => {
-          bounds.extend([network.location.longitude, network.location.latitude]);
+          bounds.extend([
+            network.location.longitude,
+            network.location.latitude,
+          ]);
         });
 
         if (!bounds.isEmpty()) {
           let maxZoom = 15;
           let padding = 50;
 
-          // Adjust zoom based on search radius
           if (searchRadius === -1) {
-            // Showing all networks
             maxZoom = 8;
             padding = 60;
           } else if (searchRadius >= 200) {
@@ -273,51 +262,34 @@ export const NetworksMap: React.FC<Props> = ({
             maxZoom = 12;
             padding = 40;
           } else if (searchRadius <= 10) {
-            // Very close networks, zoom in more
             maxZoom = 13;
             padding = 30;
           }
 
-          // If only one network is found, zoom in closer
           if (filteredNetworks.length === 1) {
             maxZoom = Math.min(maxZoom + 1, 15);
           }
-
-          // Log for debugging
-          console.log('Fitting bounds:', {
-            bounds: bounds.toArray(),
-            maxZoom,
-            padding,
-            searchRadius,
-            networkCount: filteredNetworks.length
-          });
 
           map.fitBounds(bounds, {
             padding: padding,
             maxZoom: maxZoom,
             duration: 1000,
-            essential: true // This forces the animation to complete
+            essential: true,
           });
         }
       } else if (userLat && userLng) {
-        // If no networks found but user location exists, center on user
-        console.log('Flying to user location:', [parseFloat(userLng), parseFloat(userLat)]);
-
         map.flyTo({
           center: [parseFloat(userLng), parseFloat(userLat)],
           zoom: 12,
           duration: 1000,
-          essential: true
+          essential: true,
         });
       } else {
-        // Default view
-        console.log('Flying to default view');
-
         map.flyTo({
           center: [initialLongitude, initialLatitude],
           zoom: initialZoom,
           duration: 1000,
-          essential: true
+          essential: true,
         });
       }
     }, 100);
@@ -355,7 +327,6 @@ export const NetworksMap: React.FC<Props> = ({
         </span>
       </Map>
 
-      {/* Search radius indicator */}
       {userLat && userLng && searchRadius > 0 && (
         <div className="absolute top-8 right-8 z-10 bg-white px-3 py-2 rounded-lg shadow-md text-sm">
           {searchRadius === -1
