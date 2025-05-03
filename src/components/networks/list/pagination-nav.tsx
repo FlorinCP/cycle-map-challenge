@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import {
   Pagination,
   PaginationContent,
@@ -26,9 +26,11 @@ export function PaginationNav({
   pageSize,
   siblingCount = 1,
 }: PaginationNavProps) {
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = searchParams.get(SEARCH_PARAMS.PAGE);
+
   const currentPage = useMemo(() => {
     const pageNum = parseInt(page || '1', 10);
     return isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
@@ -42,10 +44,10 @@ export function PaginationNav({
     totalCount: totalPages * pageSize,
   });
 
-  const createPageURL = (pageNumber: number | string) => {
+  const handlePageChange = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', String(pageNumber));
-    return `${pathname}?${params.toString()}`;
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   if (totalPages <= 1) {
@@ -60,12 +62,13 @@ export function PaginationNav({
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            href={showPrevious ? createPageURL(currentPage - 1) : '#'}
+            onClick={() => showPrevious && handlePageChange(currentPage - 1)}
             aria-disabled={!showPrevious}
             tabIndex={showPrevious ? undefined : -1}
-            className={
-              !showPrevious ? 'pointer-events-none opacity-50' : undefined
-            }
+            className={cn(
+              'cursor-pointer',
+              !showPrevious && 'pointer-events-none opacity-50'
+            )}
           />
         </PaginationItem>
 
@@ -77,10 +80,10 @@ export function PaginationNav({
           return (
             <PaginationItem key={pageNumber}>
               <PaginationLink
-                href={createPageURL(pageNumber)}
+                onClick={() => handlePageChange(pageNumber)}
                 isActive={currentPage === pageNumber}
                 className={cn(
-                  'text-accent-foreground border',
+                  'cursor-pointer text-accent-foreground border',
                   currentPage === pageNumber && 'bg-accent'
                 )}
                 aria-current={currentPage === pageNumber ? 'page' : undefined}
@@ -93,14 +96,16 @@ export function PaginationNav({
 
         <PaginationItem>
           <PaginationNext
-            href={showNext ? createPageURL(currentPage + 1) : '#'}
+            onClick={() => showNext && handlePageChange(currentPage + 1)}
             aria-disabled={!showNext}
             tabIndex={showNext ? undefined : -1}
-            className={!showNext ? 'pointer-events-none opacity-50' : undefined}
+            className={cn(
+              'cursor-pointer',
+              !showNext && 'pointer-events-none opacity-50'
+            )}
           />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
   );
 }
-PaginationNav.displayName = 'PaginationNav';
