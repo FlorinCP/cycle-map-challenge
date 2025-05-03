@@ -7,9 +7,9 @@ import StationListHeader from '@/components/networks/detail/station-list-header'
 import { cn } from '@/lib/utils';
 import { Station } from '@/types/city-bikes';
 import { usePaginatedNetworkDetal } from '@/hooks/use-paginated-network-detail';
-import { PaginationNav } from '@/components/networks/list/pagination-nav';
+import { PaginationNav } from '@/components/ui/pagination-nav';
 import { STATION_ITEMS_PER_PAGE } from '@/types/search-params';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const getCompanyDisplay = (
   company: string | string[] | undefined | null
@@ -28,17 +28,8 @@ export default function NetworkDetailView({
   networkId,
   selectedStationId,
 }: NetworkDetailDisplayProps) {
-  const { networkDetail, stations, currentPage, totalPages } =
+  const { networkDetail, stations, currentPage, totalPages, isLoading } =
     usePaginatedNetworkDetal(networkId);
-  const router = useRouter();
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.push('/networks');
-    }
-  };
 
   return (
     <div className="flex flex-col w-full max-h-screen min-h-screen overflow-y-auto bg-primary">
@@ -50,12 +41,12 @@ export default function NetworkDetailView({
           backgroundColor: 'lightgray',
         }}
       >
-        <button
-          onClick={handleBack}
+        <Link
+          href={'/networks'}
           className="text-grenadier-500 h-10 w-10 rounded-full bg-white grid place-content-center flex-shrink-0"
         >
           <ArrowLeft className="h-4 w-4" />
-        </button>
+        </Link>
         <div className={'flex gap-2 flex-col'}>
           <h1 className="text-3xl font-bold text-white">
             {networkDetail?.name}
@@ -102,7 +93,18 @@ export default function NetworkDetailView({
           </div>
 
           <div className={'pb-6'}>
-            {stations.length > 0 ? (
+            {isLoading &&
+              Array.from({ length: 10 }).map((_, i) => (
+                <StationListItem
+                  key={i}
+                  station={{
+                    name: 'Loading',
+                    empty_slots: 0,
+                    free_bikes: 0,
+                  }}
+                />
+              ))}
+            {!isLoading && stations.length > 0 ? (
               stations.map((station: Station) => (
                 <StationListItem
                   key={station.id}
@@ -123,6 +125,7 @@ export default function NetworkDetailView({
 
           {totalPages > 1 && (
             <PaginationNav
+              schema={'secondary'}
               totalPages={totalPages}
               pageSize={STATION_ITEMS_PER_PAGE}
             />

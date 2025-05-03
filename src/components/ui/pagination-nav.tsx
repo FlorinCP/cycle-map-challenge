@@ -19,12 +19,14 @@ interface PaginationNavProps {
   totalPages: number;
   pageSize: number;
   siblingCount?: number;
+  schema?: 'primary' | 'secondary';
 }
 
 export function PaginationNav({
   totalPages,
   pageSize,
   siblingCount = 1,
+  schema = 'primary',
 }: PaginationNavProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -47,7 +49,9 @@ export function PaginationNav({
   const handlePageChange = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', String(pageNumber));
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`, {
+      scroll: true,
+    });
   };
 
   if (totalPages <= 1) {
@@ -58,7 +62,7 @@ export function PaginationNav({
   const showNext = currentPage < totalPages;
 
   return (
-    <Pagination>
+    <Pagination className={'p-10'}>
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
@@ -67,7 +71,8 @@ export function PaginationNav({
             tabIndex={showPrevious ? undefined : -1}
             className={cn(
               'cursor-pointer',
-              !showPrevious && 'pointer-events-none opacity-50'
+              !showPrevious && 'pointer-events-none opacity-50',
+              schema === 'secondary' && 'text-white'
             )}
           />
         </PaginationItem>
@@ -83,8 +88,12 @@ export function PaginationNav({
                 onClick={() => handlePageChange(pageNumber)}
                 isActive={currentPage === pageNumber}
                 className={cn(
-                  'cursor-pointer text-accent-foreground border',
-                  currentPage === pageNumber && 'bg-accent'
+                  'cursor-pointer text-accent-foreground border font-semibold',
+                  currentPage === pageNumber && 'bg-accent',
+                  schema === 'secondary' && 'text-white border-none',
+                  schema === 'secondary' &&
+                    currentPage === pageNumber &&
+                    'text-torea-bay-900'
                 )}
                 aria-current={currentPage === pageNumber ? 'page' : undefined}
               >
@@ -100,8 +109,9 @@ export function PaginationNav({
             aria-disabled={!showNext}
             tabIndex={showNext ? undefined : -1}
             className={cn(
-              'cursor-pointer',
-              !showNext && 'pointer-events-none opacity-50'
+              'cursor-pointer font-semibold',
+              !showNext && 'pointer-events-none opacity-50',
+              schema === 'secondary' && 'text-white'
             )}
           />
         </PaginationItem>
