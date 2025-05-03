@@ -1,8 +1,10 @@
 import type { Station } from '@/types/city-bikes';
 import { cn } from '@/lib/utils';
 
+type StationOverview = Pick<Station, 'name' | 'free_bikes' | 'empty_slots'>;
+
 interface StationListItemProps {
-  station: Station;
+  station: StationOverview;
   isHighlighted?: boolean;
 }
 

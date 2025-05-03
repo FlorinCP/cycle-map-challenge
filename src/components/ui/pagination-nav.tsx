@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import React, { useMemo } from 'react';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import {
   Pagination,
   PaginationContent,
@@ -11,27 +11,32 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-  usePaginationRange,
-  DOTS,
-} from '@/hooks/pagination/use-pagination-range';
+import { usePaginationRange, DOTS } from '@/hooks/use-pagination-range';
 import { cn } from '@/lib/utils';
+import { SEARCH_PARAMS } from '@/types/search-params';
 
 interface PaginationNavProps {
-  currentPage: number;
   totalPages: number;
   pageSize: number;
   siblingCount?: number;
+  schema?: 'primary' | 'secondary';
 }
 
 export function PaginationNav({
-  currentPage,
   totalPages,
   pageSize,
   siblingCount = 1,
+  schema = 'primary',
 }: PaginationNavProps) {
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const page = searchParams.get(SEARCH_PARAMS.PAGE);
+
+  const currentPage = useMemo(() => {
+    const pageNum = parseInt(page || '1', 10);
+    return isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
+  }, [page]);
 
   const paginationRange = usePaginationRange({
     currentPage,
@@ -41,10 +46,12 @@ export function PaginationNav({
     totalCount: totalPages * pageSize,
   });
 
-  const createPageURL = (pageNumber: number | string) => {
+  const handlePageChange = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', String(pageNumber));
-    return `${pathname}?${params.toString()}`;
+    router.push(`${pathname}?${params.toString()}`, {
+      scroll: true,
+    });
   };
 
   if (totalPages <= 1) {
@@ -55,16 +62,18 @@ export function PaginationNav({
   const showNext = currentPage < totalPages;
 
   return (
-    <Pagination>
+    <Pagination className={'p-10'}>
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            href={showPrevious ? createPageURL(currentPage - 1) : '#'}
+            onClick={() => showPrevious && handlePageChange(currentPage - 1)}
             aria-disabled={!showPrevious}
             tabIndex={showPrevious ? undefined : -1}
-            className={
-              !showPrevious ? 'pointer-events-none opacity-50' : undefined
-            }
+            className={cn(
+              'cursor-pointer',
+              !showPrevious && 'pointer-events-none opacity-50',
+              schema === 'secondary' && 'text-white'
+            )}
           />
         </PaginationItem>
 
@@ -76,11 +85,15 @@ export function PaginationNav({
           return (
             <PaginationItem key={pageNumber}>
               <PaginationLink
-                href={createPageURL(pageNumber)}
+                onClick={() => handlePageChange(pageNumber)}
                 isActive={currentPage === pageNumber}
                 className={cn(
-                  'text-accent-foreground border',
-                  currentPage === pageNumber && 'bg-accent'
+                  'cursor-pointer text-accent-foreground border font-semibold',
+                  currentPage === pageNumber && 'bg-accent',
+                  schema === 'secondary' && 'text-white border-none',
+                  schema === 'secondary' &&
+                    currentPage === pageNumber &&
+                    'text-torea-bay-900'
                 )}
                 aria-current={currentPage === pageNumber ? 'page' : undefined}
               >
@@ -92,14 +105,17 @@ export function PaginationNav({
 
         <PaginationItem>
           <PaginationNext
-            href={showNext ? createPageURL(currentPage + 1) : '#'}
+            onClick={() => showNext && handlePageChange(currentPage + 1)}
             aria-disabled={!showNext}
             tabIndex={showNext ? undefined : -1}
-            className={!showNext ? 'pointer-events-none opacity-50' : undefined}
+            className={cn(
+              'cursor-pointer font-semibold',
+              !showNext && 'pointer-events-none opacity-50',
+              schema === 'secondary' && 'text-white'
+            )}
           />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
   );
 }
-PaginationNav.displayName = 'PaginationNav';

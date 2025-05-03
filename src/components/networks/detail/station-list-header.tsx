@@ -1,19 +1,7 @@
 import SortControls from '@/components/networks/detail/sort-controls';
 import React from 'react';
-import { SortDirection, StationSortKey } from '@/types/city-bikes';
 
-interface StationListHeaderProps {
-  sortConfig: { key: StationSortKey | null; direction: SortDirection };
-  onSortChange: (sortConfig: {
-    key: StationSortKey | null;
-    direction: SortDirection;
-  }) => void;
-}
-
-export default function StationListHeader({
-  sortConfig,
-  onSortChange,
-}: StationListHeaderProps) {
+export default function StationListHeader() {
   return (
     <div
       className={
@@ -27,7 +15,7 @@ export default function StationListHeader({
       >
         STATION NAME
       </p>
-      <SortControls sortConfig={sortConfig} onSortChange={onSortChange} />
+      <SortControls />
     </div>
   );
 }

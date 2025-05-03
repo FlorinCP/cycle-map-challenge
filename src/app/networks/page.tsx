@@ -1,10 +1,11 @@
-import NetworksListView from '@/components/networks/list/networks-list-view';
+import NetworksListView from '@/components/networks/list/newtork-list/networks-list-view';
 import { Suspense } from 'react';
 import NetworksMap from '@/components/map/networks-map';
+import { LoadingScreen } from '@/components/ui/spinner';
 
 export default function NetworksPage() {
   return (
-    <Suspense fallback={<div className="h-full w-full">Loading...</div>}>
+    <Suspense fallback={<LoadingScreen />}>
       <div className="grid grid-cols-1 md:grid-cols-[30%_70%] min-h-screen max-h-screen w-full scrollbar-hide">
         <NetworksListView />
         <NetworksMap

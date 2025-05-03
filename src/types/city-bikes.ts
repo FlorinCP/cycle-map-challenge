@@ -1,10 +1,3 @@
-export type StationSortKey = 'free_bikes' | 'empty_slots';
-
-/**
- * Represents the possible directions for sorting.
- */
-export type SortDirection = 'asc' | 'desc';
-
 /**
  * Represents the geographical location details for a network.
  */

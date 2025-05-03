@@ -5,7 +5,7 @@ import { NetworkSummary } from '@/types/city-bikes';
 interface Props {
   network: NetworkSummary;
   onClick: () => void;
-  onMouseEnter: () => void;
+  onMouseEnter?: () => void;
 }
 
 export const NetworkMarker: React.FC<Props> = ({

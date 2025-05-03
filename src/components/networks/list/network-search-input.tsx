@@ -1,57 +1,72 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import debounce from 'lodash.debounce';
 
-export default function NetworkSearchInput() {
+interface NetworkSearchInputProps {
+  placeholder?: string;
+  debounceMs?: number;
+  onSearchChange?: (term: string) => void;
+}
+
+export default function NetworkSearchInput({
+  placeholder = 'Search networks or companies...',
+  debounceMs = 300,
+  onSearchChange,
+}: NetworkSearchInputProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const initialSearch = searchParams.get('search') || '';
   const [inputValue, setInputValue] = useState(initialSearch);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const routerRef = useRef(router);
-  const pathnameRef = useRef(pathname);
-  const searchParamsRef = useRef(searchParams);
-
-  useEffect(() => {
-    routerRef.current = router;
-  }, [router]);
-  useEffect(() => {
-    pathnameRef.current = pathname;
-  }, [pathname]);
-  useEffect(() => {
-    searchParamsRef.current = searchParams;
-  }, [searchParams]);
-
-  const performUpdate = useCallback((term: string) => {
-    const current = new URLSearchParams(
-      Array.from(searchParamsRef.current.entries())
-    );
-
-    if (!term.trim()) {
-      current.delete('search');
-    } else {
-      current.set('search', term);
-    }
-    current.set('page', '1');
-
-    const search = current.toString();
-    const query = search ? `?${search}` : '';
-    routerRef.current.push(`${pathnameRef.current}${query}`);
-  }, []);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedUpdateURL = useCallback(
-    debounce((term: string) => {
-      performUpdate(term);
-    }, 500),
-    [performUpdate]
+  const routingData = useMemo(
+    () => ({
+      router,
+      pathname,
+      searchParams,
+    }),
+    [router, pathname, searchParams]
   );
+
+  const performUpdate = useCallback(
+    (term: string) => {
+      const current = new URLSearchParams(
+        Array.from(routingData.searchParams.entries())
+      );
+
+      if (!term.trim()) {
+        current.delete('search');
+      } else {
+        current.set('search', term.trim());
+      }
+      current.set('page', '1');
+
+      const search = current.toString();
+      const query = search ? `?${search}` : '';
+
+      routingData.router.replace(`${routingData.pathname}${query}`);
+
+      onSearchChange?.(term);
+    },
+    [routingData, onSearchChange]
+  );
+
+  const debouncedUpdateURL = useMemo(
+    () => debounce(performUpdate, debounceMs),
+    [performUpdate, debounceMs]
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedUpdateURL.cancel();
+    };
+  }, [debouncedUpdateURL]);
 
   useEffect(() => {
     setInputValue(initialSearch);
@@ -63,15 +78,35 @@ export default function NetworkSearchInput() {
     debouncedUpdateURL(newValue);
   };
 
+  const handleClear = () => {
+    setInputValue('');
+    performUpdate('');
+    inputRef.current?.focus();
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      handleClear();
+    }
+  };
+
   return (
     <div className="relative flex-grow">
-      <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-primary" />
+      <Search
+        className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-primary pointer-events-none"
+        aria-hidden="true"
+      />
       <Input
+        ref={inputRef}
         type="search"
-        placeholder="Search networks or companies..."
+        placeholder={placeholder}
         value={inputValue}
         onChange={handleChange}
-        className="pl-10 py-6 rounded-full text-primary bg-white placeholder:text-primary border border-border leading-7 font-normal"
+        onKeyDown={handleKeyDown}
+        className="pl-10 pr-10 py-6 rounded-full text-primary bg-white placeholder:text-primary border border-border leading-7 font-normal"
+        aria-label="Search networks or companies"
+        autoComplete="off"
+        spellCheck="false"
       />
     </div>
   );

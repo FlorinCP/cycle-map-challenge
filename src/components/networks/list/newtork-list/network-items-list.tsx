@@ -3,12 +3,27 @@
 import React from 'react';
 import type { NetworkSummary } from '@/types/city-bikes';
 import { NetworkItem } from './network-list-item';
+import { NetworkItemSkeleton } from '@/components/networks/list/newtork-list/newtork-list-item-skeleton';
 
 interface NetworkListProps {
   networksToDisplay: NetworkSummary[];
+  isLoading?: boolean;
 }
 
-export default function NetworkList({ networksToDisplay }: NetworkListProps) {
+export default function NetworkItemsList({
+  networksToDisplay,
+  isLoading = false,
+}: NetworkListProps) {
+  if (isLoading) {
+    return (
+      <div>
+        {Array.from({ length: 10 }).map((_, i) => (
+          <NetworkItemSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div>
       {networksToDisplay.length > 0 ? (
@@ -29,4 +44,4 @@ export default function NetworkList({ networksToDisplay }: NetworkListProps) {
     </div>
   );
 }
-NetworkList.displayName = 'NetworkList';
+NetworkItemsList.displayName = 'PaginatedNetworkList';

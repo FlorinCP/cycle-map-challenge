@@ -1,15 +1,13 @@
 'use client';
 
-import type { StationSortKey, SortDirection } from '@/types/city-bikes';
 import { ArrowUp, ArrowDown, ArrowDownUp } from 'lucide-react';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import { SortDirection, StationSortKey } from '@/types/search-params';
 
 interface SortControlsProps {
-  sortConfig: { key: StationSortKey | null; direction: SortDirection };
-  // Callback to update the sort state in the parent
-  onSortChange: (newConfig: {
-    key: StationSortKey | null;
-    direction: SortDirection;
-  }) => void;
+  // Optional prop to specify custom search param names
+  sortKeyParam?: string;
+  sortDirectionParam?: string;
 }
 
 const SORT_OPTIONS: { label: string; key: StationSortKey }[] = [
@@ -18,25 +16,43 @@ const SORT_OPTIONS: { label: string; key: StationSortKey }[] = [
 ];
 
 export default function SortControls({
-  sortConfig,
-  onSortChange,
+  sortKeyParam = 'sortBy',
+  sortDirectionParam = 'sortDir',
 }: SortControlsProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const sortKey = searchParams.get(sortKeyParam) as StationSortKey | null;
+  const sortDirection =
+    (searchParams.get(sortDirectionParam) as SortDirection | null) || 'desc';
+
   const handleSort = (key: StationSortKey) => {
-    let newDirection: SortDirection = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      newDirection = 'desc';
+    const params = new URLSearchParams(searchParams);
+
+    let newDirection: SortDirection = 'desc';
+    if (sortKey === key && sortDirection === 'desc') {
+      newDirection = 'asc';
     }
-    onSortChange({ key, direction: newDirection });
+
+    params.set(sortKeyParam, key);
+    params.set(sortDirectionParam, newDirection);
+
+    if (params.has('page')) {
+      params.set('page', '1');
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const renderSortIcon = (key: StationSortKey) => {
-    if (sortConfig.key !== key) {
+    if (sortKey !== key) {
       return <ArrowDownUp className="h-4 w-4" />;
     }
-    return sortConfig.direction === 'asc' ? (
-      <ArrowUp className="h-4 w-4 " />
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="h-4 w-4" />
     ) : (
-      <ArrowDown className="h-4 w-4 " />
+      <ArrowDown className="h-4 w-4" />
     );
   };
 
@@ -44,15 +60,11 @@ export default function SortControls({
     <div className="flex items-center text-white">
       {SORT_OPTIONS.map(option => (
         <div
-          className={'flex gap-2 items-center cursor-pointer w-32'}
+          className="flex gap-2 items-center cursor-pointer w-32"
           key={option.key}
           onClick={() => handleSort(option.key)}
         >
-          <p
-            className={
-              'text-white text-center font-sans text-sm font-medium leading-5 tracking-wider uppercase'
-            }
-          >
+          <p className="text-white text-center font-sans text-sm font-medium leading-5 tracking-wider uppercase">
             {option.label}
           </p>
           {renderSortIcon(option.key)}
@@ -61,4 +73,5 @@ export default function SortControls({
     </div>
   );
 }
+
 SortControls.displayName = 'SortControls';
