@@ -8,7 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import type { NetworkSummary } from '@/types/city-bikes';
 import { filterNetworks } from '@/api/utils';
 import MapWrapper from '@/components/map/map-wrapper';
-import { useListNetworksQuery, usePrefetchNetworkDetail } from '@/api';
+import { useListNetworksQuery } from '@/api';
 import { NetworkMarker } from '@/components/map/network-marker';
 
 interface Props {
@@ -31,7 +31,7 @@ export const NetworksMap: React.FC<Props> = ({
   initialZoom = DefaultMapInitialState.zoom,
 }) => {
   const searchParams = useSearchParams();
-  const prefetchNetworkDetail = usePrefetchNetworkDetail();
+  // const prefetchNetworkDetail = usePrefetchNetworkDetail();
 
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
@@ -57,7 +57,7 @@ export const NetworksMap: React.FC<Props> = ({
           key={network.id}
           network={network}
           onClick={() => handleNetworkMarkerClick(network.id)}
-          onMouseEnter={() => prefetchNetworkDetail(network.id)}
+          // onMouseEnter={() => prefetchNetworkDetail(network.id)}
         />
       ));
     }
@@ -68,7 +68,7 @@ export const NetworksMap: React.FC<Props> = ({
     countryCode,
     searchTerm,
     handleNetworkMarkerClick,
-    prefetchNetworkDetail,
+    // prefetchNetworkDetail,
   ]);
 
   useEffect(() => {
