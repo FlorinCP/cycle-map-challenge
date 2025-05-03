@@ -107,9 +107,9 @@ export const NetworksMap: React.FC<Props> = ({
 
   return (
     <MapWrapper ref={mapRef} isLoading={isLoadingNetworks}>
-      <div className={"absolute top-8 left-8 z-10 flex items-center gap-2"}>
+      <span className={"absolute top-8 left-8 z-10 flex items-center"}>
         <NearMeButton />
-      </div>
+      </span>
       {markers}
     </MapWrapper>
   );
