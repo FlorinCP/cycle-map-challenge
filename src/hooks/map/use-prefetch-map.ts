@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { networkQueryKeys } from '@/api/query-keys';
 import { NetworkDetail } from '@/types/city-bikes';
 import { usePrefetchNetworkDetail } from '@/api';
+import { calculateBounds, prefetchVectorTiles } from '@/lib/map/utils';
 
 interface MapStyle {
   version: number;
@@ -23,20 +24,67 @@ export function usePrefetchMap() {
   const mapTilerUrl = process.env.NEXT_PUBLIC_MAPTILER_URL;
   const prefetchNetworkDetail = usePrefetchNetworkDetail();
 
+  // Check if a resource is already cached using the Cache API
+  const isResourceCached = async (url: string): Promise<boolean> => {
+    if (!('caches' in window)) return false;
+
+    try {
+      const cache = await caches.open('map-assets');
+      const response = await cache.match(url);
+      return !!response;
+    } catch {
+      return false;
+    }
+  };
+
+  // Cache a resource using the Cache API
+  const cacheResource = async (url: string): Promise<void> => {
+    if (!('caches' in window)) {
+      // Fallback to regular fetch if Cache API is not available
+      await fetch(url);
+      return;
+    }
+
+    try {
+      const cache = await caches.open('map-assets');
+      const response = await fetch(url);
+      if (response.ok) {
+        await cache.put(url, response.clone());
+      }
+    } catch (error) {
+      console.warn(`Failed to cache resource ${url}:`, error);
+      // Fallback to regular fetch
+      await fetch(url);
+    }
+  };
+
   return async (networkId: string) => {
     const styleUrl = `${mapTilerUrl}${mapTilerKey}`;
 
     try {
-      const networkPromise = prefetchNetworkDetail(networkId);
-      const stylePromise = queryClient.prefetchQuery({
-        queryKey: mapStyleQueryKey,
-        queryFn: async () => {
-          const response = await fetch(styleUrl);
-          if (!response.ok) throw new Error('Failed to fetch map style');
-          return response.json() as Promise<MapStyle>;
-        },
-        staleTime: 1000 * 60 * 60 * 24, // 24 hours
-      });
+      // Check if we already have the map style in cache
+      const existingStyle =
+        queryClient.getQueryData<MapStyle>(mapStyleQueryKey);
+      const existingNetwork = queryClient.getQueryData<NetworkDetail>(
+        networkQueryKeys.detail(networkId)
+      );
+
+      // Only fetch if we don't have the data
+      const networkPromise = existingNetwork
+        ? Promise.resolve(existingNetwork)
+        : prefetchNetworkDetail(networkId);
+
+      const stylePromise = existingStyle
+        ? Promise.resolve(existingStyle)
+        : queryClient.prefetchQuery({
+            queryKey: mapStyleQueryKey,
+            queryFn: async () => {
+              const response = await fetch(styleUrl);
+              if (!response.ok) throw new Error('Failed to fetch map style');
+              return response.json() as Promise<MapStyle>;
+            },
+            staleTime: 1000 * 60 * 60 * 24, // 24 hours
+          });
 
       await Promise.all([stylePromise, networkPromise]);
 
@@ -46,31 +94,53 @@ export function usePrefetchMap() {
       );
 
       if (style) {
+        // Prefetch sprite resources if not already cached
         if (style.sprite) {
-          fetch(`${style.sprite}.png`);
-          fetch(`${style.sprite}.json`);
+          const spritePngUrl = `${style.sprite}.png`;
+          const spriteJsonUrl = `${style.sprite}.json`;
+
+          const [isPngCached, isJsonCached] = await Promise.all([
+            isResourceCached(spritePngUrl),
+            isResourceCached(spriteJsonUrl),
+          ]);
+
+          if (!isPngCached) await cacheResource(spritePngUrl);
+          if (!isJsonCached) await cacheResource(spriteJsonUrl);
         }
 
+        // Prefetch glyphs if not already cached
         if (style.glyphs) {
           const glyphUrl = style.glyphs
             .replace('{fontstack}', 'Open Sans Regular')
             .replace('{range}', '0-255');
-          fetch(glyphUrl);
+
+          const isGlyphCached = await isResourceCached(glyphUrl);
+          if (!isGlyphCached) await cacheResource(glyphUrl);
         }
 
+        // Prefetch vector tiles if needed
         if (
           networkData?.stations &&
-          networkData?.stations?.length > 0 &&
+          networkData.stations.length > 0 &&
           style.sources?.openmaptiles?.url
         ) {
           try {
-            const tilesJsonResponse = await fetch(
-              style.sources.openmaptiles.url
-            );
-            const tilesJson = await tilesJsonResponse.json();
-            const tileUrlTemplate = tilesJson.tiles[0];
-            const bounds = calculateBounds(networkData.stations);
-            await prefetchVectorTiles(bounds, tileUrlTemplate);
+            // Check if we've already prefetched tiles for this network
+            const tilesPrefetchKey = `tiles-prefetched-${networkId}`;
+            const hasPrefetchedTiles = sessionStorage.getItem(tilesPrefetchKey);
+
+            if (!hasPrefetchedTiles) {
+              const tilesJsonResponse = await fetch(
+                style.sources.openmaptiles.url
+              );
+              const tilesJson = await tilesJsonResponse.json();
+              const tileUrlTemplate = tilesJson.tiles[0];
+              const bounds = calculateBounds(networkData.stations);
+              await prefetchVectorTiles(bounds, tileUrlTemplate);
+
+              // Mark as prefetched for this session
+              sessionStorage.setItem(tilesPrefetchKey, 'true');
+            }
           } catch (error) {
             console.warn('Failed to prefetch vector tiles:', error);
           }
@@ -83,94 +153,4 @@ export function usePrefetchMap() {
       throw error;
     }
   };
-}
-
-function calculateBounds(
-  stations: Array<{ latitude: number; longitude: number }>
-) {
-  let minLat = Infinity,
-    maxLat = -Infinity;
-  let minLng = Infinity,
-    maxLng = -Infinity;
-
-  stations.forEach(station => {
-    minLat = Math.min(minLat, station.latitude);
-    maxLat = Math.max(maxLat, station.latitude);
-    minLng = Math.min(minLng, station.longitude);
-    maxLng = Math.max(maxLng, station.longitude);
-  });
-
-  // Add padding to bounds
-  const latPadding = (maxLat - minLat) * 0.1;
-  const lngPadding = (maxLng - minLng) * 0.1;
-
-  return {
-    minLat: minLat - latPadding,
-    maxLat: maxLat + latPadding,
-    minLng: minLng - lngPadding,
-    maxLng: maxLng + lngPadding,
-  };
-}
-
-function estimateZoomLevel(bounds: {
-  minLat: number;
-  maxLat: number;
-  minLng: number;
-  maxLng: number;
-}): number {
-  const latDiff = bounds.maxLat - bounds.minLat;
-  const lngDiff = bounds.maxLng - bounds.minLng;
-  const maxDiff = Math.max(latDiff, lngDiff);
-
-  if (maxDiff < 0.01) return 14;
-  if (maxDiff < 0.05) return 13;
-  if (maxDiff < 0.1) return 12;
-  if (maxDiff < 0.5) return 10;
-  if (maxDiff < 1) return 8;
-  return 6;
-}
-
-function latLngToTile(lat: number, lng: number, zoom: number) {
-  const x = Math.floor(((lng + 180) / 360) * Math.pow(2, zoom));
-  const y = Math.floor(
-    ((1 -
-      Math.log(
-        Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)
-      ) /
-        Math.PI) /
-      2) *
-      Math.pow(2, zoom)
-  );
-  return { x, y };
-}
-
-async function prefetchVectorTiles(
-  bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number },
-  tileUrlTemplate: string
-) {
-  const zoom = Math.min(14, estimateZoomLevel(bounds));
-
-  const minTile = latLngToTile(bounds.minLat, bounds.minLng, zoom);
-  const maxTile = latLngToTile(bounds.maxLat, bounds.maxLng, zoom);
-
-  const tiles: string[] = [];
-
-  for (let x = minTile.x; x <= maxTile.x && tiles.length < 9; x++) {
-    for (let y = minTile.y; y <= maxTile.y && tiles.length < 9; y++) {
-      const url = tileUrlTemplate
-        .replace('{z}', zoom.toString())
-        .replace('{x}', x.toString())
-        .replace('{y}', y.toString());
-      tiles.push(url);
-    }
-  }
-
-  const prefetchPromises = tiles.map(url =>
-    fetch(url, {
-      method: 'GET',
-      cache: 'force-cache',
-    }).catch(err => console.warn(`Failed to prefetch tile: ${url}`, err))
-  );
-
-  await Promise.all(prefetchPromises);
 }

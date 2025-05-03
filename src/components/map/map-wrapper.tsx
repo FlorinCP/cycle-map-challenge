@@ -28,7 +28,7 @@ export const MapWrapper = forwardRef<MapRef, Props>(
     useImperativeHandle(ref, () => reactMapRef.current!, []);
 
     return (
-      <div className={'h-full w-full relative'}>
+      <div className={'h-full w-full relative select-none'}>
         {isLoading && (
           <div className="absolute inset-0 bg-gray-200 bg-opacity-50 flex items-center justify-center z-10">
             <p className="text-gray-700">Loading map data...</p>

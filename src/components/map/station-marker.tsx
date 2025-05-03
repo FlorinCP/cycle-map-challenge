@@ -58,21 +58,21 @@ export const StationMarker: React.FC<Props> = ({
         closeOnClick={false}
         className={cn(
           isSelected ? 'opacity-100' : 'opacity-0',
-          'transition-opacity duration-300 ease-in-out'
+          'transition-opacity duration-300 ease-in-out select-none'
         )}
       >
-        <div className={'p-4 flex flex-col gap-2 '}>
+        <div className={'p-4 flex flex-col gap-2'}>
           <p className="font-medium text-base text-primary leading-7">
             {station.name}
           </p>
           {station.free_bikes !== undefined && (
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-2">
               <p>Available bikes</p>
               <p className={'font-medium'}>{station.free_bikes}</p>
             </div>
           )}
           {station.empty_slots !== undefined && (
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-2">
               <p>Empty slots</p>
               <p className={'font-medium'}>{station.empty_slots}</p>
             </div>
