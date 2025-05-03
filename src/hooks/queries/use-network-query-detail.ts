@@ -1,14 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { NetworkDetail, NetworkDetailResponse } from '@/types/city-bikes';
 import { networkQueryKeys } from '@/lib/api/query-keys';
 
 const BASE_URL = 'https://api.citybik.es/v2';
 
-/**
- * Async function specifically for fetching network details by ID.
- */
 const fetchNetworkById = async (id: string): Promise<NetworkDetail> => {
-  console.log(`Fetching network detail for ID: ${id} via TanStack Query...`);
   const response = await fetch(`${BASE_URL}/networks/${id}`);
 
   if (!response.ok) {
@@ -66,4 +62,16 @@ export function useNetworkDetailQuery(id: string | null | undefined) {
     staleTime: 1000 * 60 * 15,
     gcTime: 1000 * 60 * 30,
   });
+}
+
+export function usePrefetchNetworkDetail() {
+  const queryClient = useQueryClient();
+
+  return (id: string) => {
+    return queryClient.prefetchQuery({
+      queryKey: networkQueryKeys.detail(id),
+      queryFn: () => fetchNetworkById(id),
+      staleTime: 1000 * 60 * 15,
+    });
+  };
 }
