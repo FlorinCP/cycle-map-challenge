@@ -1,16 +1,15 @@
 'use client';
 
-import { Map, type MapRef } from '@vis.gl/react-maplibre';
+import { Map, type MapRef, Layer, Source, Popup } from '@vis.gl/react-maplibre';
 import { LngLatBounds } from 'maplibre-gl';
 import React, {
   useRef,
-  useEffect,
+  useMemo,
   useCallback,
   useState,
-  useMemo,
+  useEffect,
 } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { filterNetworks } from '@/api/utils';
 import { useListNetworksQuery } from '@/api';
@@ -32,6 +31,13 @@ const DefaultMapInitialState = {
   bearing: 0,
 };
 
+interface HoveredFeature {
+  coordinates: [number, number];
+  name: string;
+  city: string;
+  country: string;
+}
+
 export const NetworksMap: React.FC<Props> = ({
   initialLatitude = DefaultMapInitialState.latitude,
   initialLongitude = DefaultMapInitialState.longitude,
@@ -40,26 +46,25 @@ export const NetworksMap: React.FC<Props> = ({
   const searchParams = useSearchParams();
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(
+    null
+  );
 
-  const countryCode = searchParams.get('country');
-  const searchTerm = searchParams.get('search');
+  const [isMapReady, setIsMapReady] = useState(false);
+  const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
+
+  const countryCode = searchParams.get(SEARCH_PARAMS.COUNTRY);
+  const searchTerm = searchParams.get(SEARCH_PARAMS.SEARCH);
   const userLat = searchParams.get(SEARCH_PARAMS.LAT);
   const userLng = searchParams.get(SEARCH_PARAMS.LNG);
 
   const { data: allNetworks, isLoading: isLoadingNetworks } =
     useListNetworksQuery();
 
-  const handleNetworkMarkerClick = useCallback(
-    (id: string) => {
-      router.push(`/networks/${id}`);
-    },
-    [router]
-  );
-
   const { filteredNetworks, searchRadius } = useMemo(() => {
-    if (!allNetworks || isLoadingNetworks)
+    if (!allNetworks || isLoadingNetworks) {
       return { filteredNetworks: [], searchRadius: 0 };
+    }
 
     if (userLat && userLng) {
       const result = findNetworksProgressively(
@@ -89,194 +94,118 @@ export const NetworksMap: React.FC<Props> = ({
     userLng,
   ]);
 
-  const setupEventHandlers = useCallback(
-    (map: maplibregl.Map) => {
-      // Initialize popup
-      const popup = new maplibregl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-        offset: 15,
-      });
-
-      map.on('click', 'network-markers', e => {
-        if (e.features && e.features.length > 0) {
-          const feature = e.features[0];
-          const networkId = feature.properties?.id;
-
-          if (networkId) {
-            handleNetworkMarkerClick(networkId);
-            e.preventDefault();
-          }
-        }
-      });
-
-      map.on('mouseenter', 'network-markers', () => {
-        map.getCanvas().style.cursor = 'pointer';
-      });
-
-      map.on('mouseleave', 'network-markers', () => {
-        map.getCanvas().style.cursor = '';
-      });
-
-      map.on('mouseenter', 'network-markers', e => {
-        if (e.features && e.features.length > 0) {
-          const feature = e.features[0];
-          const coordinates = (feature.geometry as any).coordinates.slice();
-          const { name, city, country } = feature.properties || {};
-
-          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-          }
-
-          popup
-            .setLngLat(coordinates)
-            .setHTML(
-              `
-            <div class="p-2">
-              <h3 class="font-bold">${name}</h3>
-              <p class="text-sm">${city}, ${country}</p>
-            </div>
-          `
-            )
-            .addTo(map);
-        }
-      });
-
-      map.on('mouseleave', 'network-markers', () => {
-        popup.remove();
-      });
-    },
-    [handleNetworkMarkerClick]
-  );
-
-  const initializeMapData = useCallback(
-    (map: maplibregl.Map) => {
-      if (!filteredNetworks || filteredNetworks.length === 0) {
-        if (map.getLayer('network-markers')) map.removeLayer('network-markers');
-        if (map.getSource('networks')) map.removeSource('networks');
-        return;
-      }
-
-      const geojson = {
-        type: 'FeatureCollection' as const,
-        features: filteredNetworks.map(network => ({
-          type: 'Feature' as const,
-          geometry: {
-            type: 'Point' as const,
-            coordinates: [
-              network.location.longitude,
-              network.location.latitude,
-            ],
-          },
-          properties: {
-            id: network.id,
-            name: network.name,
-            city: network.location.city,
-            country: network.location.country,
-          },
-        })),
-      };
-
-      if (map.getLayer('network-markers')) map.removeLayer('network-markers');
-      if (map.getSource('networks')) map.removeSource('networks');
-
-      map.addSource('networks', {
-        type: 'geojson',
-        data: geojson,
-      });
-
-      map.addLayer({
-        id: 'network-markers',
-        type: 'circle',
-        source: 'networks',
-        paint: {
-          'circle-color': '#1E40AF',
-          'circle-radius': 6,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': '#ffffff',
-          'circle-opacity': 0.8,
+  const geojsonData = useMemo(() => {
+    return {
+      type: 'FeatureCollection' as const,
+      features: filteredNetworks.map(network => ({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [network.location.longitude, network.location.latitude],
         },
-      });
+        properties: {
+          id: network.id,
+          name: network.name,
+          city: network.location.city,
+          country: network.location.country,
+        },
+      })),
+    };
+  }, [filteredNetworks]);
 
-      setupEventHandlers(map);
+  const mapBounds = useMemo(() => {
+    if (filteredNetworks.length === 0) return null;
+
+    const bounds = new LngLatBounds();
+
+    if (userLat && userLng) {
+      bounds.extend([parseFloat(userLng), parseFloat(userLat)]);
+    }
+
+    filteredNetworks.forEach(network => {
+      bounds.extend([network.location.longitude, network.location.latitude]);
+    });
+
+    return bounds.isEmpty() ? null : bounds;
+  }, [filteredNetworks, userLat, userLng]);
+
+  const mapZoomConfig = useMemo(() => {
+    let maxZoom = 15;
+    let padding = 50;
+
+    if (searchRadius === -1) {
+      maxZoom = 8;
+      padding = 60;
+    } else if (searchRadius >= 200) {
+      maxZoom = 9;
+      padding = 60;
+    } else if (searchRadius >= 100) {
+      maxZoom = 10;
+      padding = 50;
+    } else if (searchRadius >= 50) {
+      maxZoom = 11;
+      padding = 40;
+    } else if (searchRadius >= 20) {
+      maxZoom = 12;
+      padding = 40;
+    } else if (searchRadius <= 10) {
+      maxZoom = 13;
+      padding = 30;
+    }
+
+    if (filteredNetworks.length === 1) {
+      maxZoom = Math.min(maxZoom + 1, 15);
+    }
+
+    return { maxZoom, padding };
+  }, [searchRadius, filteredNetworks.length]);
+
+  const handleMarkerClick = useCallback(
+    (e: maplibregl.MapLayerMouseEvent) => {
+      if (e.features && e.features.length > 0) {
+        const feature = e.features[0];
+        const networkId = feature.properties?.id;
+
+        if (networkId) {
+          router.push(`/networks/${networkId}`);
+        }
+      }
     },
-    [filteredNetworks, setupEventHandlers]
+    [router]
   );
 
-  // Handle map load
-  const onMapLoad = useCallback(() => {
-    setMapLoaded(true);
-    const map = mapRef.current?.getMap();
-    if (map) {
-      initializeMapData(map);
+  const handleMouseEnter = useCallback((e: maplibregl.MapLayerMouseEvent) => {
+    if (e.features && e.features.length > 0) {
+      const feature = e.features[0];
+      const geometry = feature.geometry as GeoJSON.Point;
+
+      setHoveredFeature({
+        coordinates: geometry.coordinates as [number, number],
+        name: feature.properties?.name,
+        city: feature.properties?.city,
+        country: feature.properties?.country,
+      });
     }
-  }, [initializeMapData]);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredFeature(null);
+  }, []);
 
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current) return;
-
-    const map = mapRef.current.getMap();
-    if (!map) return;
-
-    initializeMapData(map);
-  }, [mapLoaded, filteredNetworks, initializeMapData]);
-
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current) return;
+    if (!isMapReady || !mapRef.current) return;
 
     const map = mapRef.current.getMap();
     if (!map) return;
 
     const timeoutId = setTimeout(() => {
-      if (filteredNetworks.length > 0) {
-        const bounds = new LngLatBounds();
-
-        if (userLat && userLng) {
-          bounds.extend([parseFloat(userLng), parseFloat(userLat)]);
-        }
-
-        filteredNetworks.forEach(network => {
-          bounds.extend([
-            network.location.longitude,
-            network.location.latitude,
-          ]);
+      if (mapBounds) {
+        map.fitBounds(mapBounds, {
+          padding: mapZoomConfig.padding,
+          maxZoom: mapZoomConfig.maxZoom,
+          duration: 1000,
+          essential: true,
         });
-
-        if (!bounds.isEmpty()) {
-          let maxZoom = 15;
-          let padding = 50;
-
-          if (searchRadius === -1) {
-            maxZoom = 8;
-            padding = 60;
-          } else if (searchRadius >= 200) {
-            maxZoom = 9;
-            padding = 60;
-          } else if (searchRadius >= 100) {
-            maxZoom = 10;
-            padding = 50;
-          } else if (searchRadius >= 50) {
-            maxZoom = 11;
-            padding = 40;
-          } else if (searchRadius >= 20) {
-            maxZoom = 12;
-            padding = 40;
-          } else if (searchRadius <= 10) {
-            maxZoom = 13;
-            padding = 30;
-          }
-
-          if (filteredNetworks.length === 1) {
-            maxZoom = Math.min(maxZoom + 1, 15);
-          }
-
-          map.fitBounds(bounds, {
-            padding: padding,
-            maxZoom: maxZoom,
-            duration: 1000,
-            essential: true,
-          });
-        }
       } else if (userLat && userLng) {
         map.flyTo({
           center: [parseFloat(userLng), parseFloat(userLat)],
@@ -296,15 +225,19 @@ export const NetworksMap: React.FC<Props> = ({
 
     return () => clearTimeout(timeoutId);
   }, [
-    mapLoaded,
-    filteredNetworks,
-    searchRadius,
+    isMapReady,
+    mapBounds,
+    mapZoomConfig,
     userLat,
     userLng,
     initialLatitude,
     initialLongitude,
     initialZoom,
   ]);
+
+  const onMapLoad = useCallback(() => {
+    setIsMapReady(true);
+  }, []);
 
   return (
     <div className="relative w-full h-full">
@@ -316,15 +249,53 @@ export const NetworksMap: React.FC<Props> = ({
           zoom: initialZoom,
         }}
         style={{ width: '100%', height: '100%' }}
-        mapStyle="https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+        mapStyle={mapStyle}
         onLoad={onMapLoad}
         dragRotate={false}
         pitchWithRotate={false}
         touchZoomRotate={false}
+        interactiveLayerIds={['network-markers']}
+        onClick={handleMarkerClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        cursor={hoveredFeature ? 'pointer' : 'auto'}
       >
         <span className={'absolute top-8 left-8 z-10 flex items-center'}>
           <NearMeButton />
         </span>
+
+        {geojsonData.features.length > 0 && (
+          <Source id="networks" type="geojson" data={geojsonData}>
+            <Layer
+              id="network-markers"
+              type="circle"
+              paint={{
+                'circle-color': '#1E40AF',
+                'circle-radius': 6,
+                'circle-stroke-width': 1,
+                'circle-stroke-color': '#ffffff',
+                'circle-opacity': 0.8,
+              }}
+            />
+          </Source>
+        )}
+
+        {hoveredFeature && (
+          <Popup
+            longitude={hoveredFeature.coordinates[0]}
+            latitude={hoveredFeature.coordinates[1]}
+            closeButton={false}
+            closeOnClick={false}
+            offset={15}
+          >
+            <div className="p-2">
+              <h3 className="font-bold">{hoveredFeature.name}</h3>
+              <p className="text-sm">
+                {hoveredFeature.city}, {hoveredFeature.country}
+              </p>
+            </div>
+          </Popup>
+        )}
       </Map>
 
       {userLat && userLng && searchRadius > 0 && (
