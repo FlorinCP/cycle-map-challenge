@@ -3,7 +3,6 @@
 import React, { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { useNetworksQuery } from '@/hooks/queries/use-network-query';
 import logo from '../../../../public/cycle-map-logo.svg';
 import CountryFilter from './country-filter';
 import NetworkSearchInput from './network-search-input';
@@ -12,10 +11,11 @@ import {
   calculateTotalPages,
   filterNetworks,
   paginateItems,
-} from '@/lib/api/utils';
+} from '@/api/utils';
 import NetworkList from '@/components/networks/list/network-list';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useListNetworksQuery } from '@/api';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -30,7 +30,7 @@ export default function NetworksListView() {
     return isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
   }, [searchParams]);
 
-  const { data: allNetworks } = useNetworksQuery();
+  const { data: allNetworks } = useListNetworksQuery();
 
   const filteredNetworks = useMemo(() => {
     if (!allNetworks) return [];

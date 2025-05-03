@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { networkQueryKeys } from '@/lib/api/query-keys';
-import { usePrefetchNetworkDetail } from '@/hooks/queries/use-network-query-detail';
+import { networkQueryKeys } from '@/api/query-keys';
 import { NetworkDetail } from '@/types/city-bikes';
+import { usePrefetchNetworkDetail } from '@/api';
 
 interface MapStyle {
   version: number;
@@ -20,10 +20,11 @@ const mapStyleQueryKey = ['mapStyle'] as const;
 export function usePrefetchMap() {
   const queryClient = useQueryClient();
   const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+  const mapTilerUrl = process.env.NEXT_PUBLIC_MAPTILER_URL;
   const prefetchNetworkDetail = usePrefetchNetworkDetail();
 
   return async (networkId: string) => {
-    const styleUrl = `https://api.maptiler.com/maps/streets-v2-light/style.json?key=${mapTilerKey}`;
+    const styleUrl = `${mapTilerUrl}${mapTilerKey}`;
 
     try {
       const networkPromise = prefetchNetworkDetail(networkId);

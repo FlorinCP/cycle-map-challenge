@@ -1,6 +1,6 @@
 import { Poppins } from 'next/font/google';
 import './globals.css';
-import QueryProvider from '@/lib/api/query-provider';
+import QueryProvider from '@/lib/query-provider';
 
 const poppins = Poppins({
   subsets: ['latin'],

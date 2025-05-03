@@ -5,10 +5,10 @@ import { LngLatBounds } from 'maplibre-gl';
 import React, { useRef, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-import { useNetworksQuery } from '@/hooks/queries/use-network-query';
 import type { NetworkSummary } from '@/types/city-bikes';
-import { filterNetworks } from '@/lib/api/utils';
+import { filterNetworks } from '@/api/utils';
 import MapWrapper from '@/components/map/map-wrapper';
+import { useListNetworksQuery } from '@/api';
 
 interface Props {
   initialLongitude?: number;
@@ -37,7 +37,7 @@ export const NetworksMap: React.FC<Props> = ({
   const searchTerm = searchParams.get('search');
 
   const { data: allNetworks, isLoading: isLoadingNetworks } =
-    useNetworksQuery();
+    useListNetworksQuery();
 
   const handleNetworkMarkerClick = useCallback(
     (network: NetworkSummary) => {

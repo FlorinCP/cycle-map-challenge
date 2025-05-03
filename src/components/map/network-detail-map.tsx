@@ -12,8 +12,8 @@ import React, {
 } from 'react';
 
 import type { Station } from '@/types/city-bikes';
-import { useNetworkDetailQuery } from '@/hooks/queries/use-network-query-detail';
 import { StationMarker } from '@/components/map/station-marker';
+import { useGetNetworkDetailQuery } from '@/api';
 
 interface Props {
   networkId: string;
@@ -32,7 +32,8 @@ export const NetworkDetailMap: React.FC<Props> = ({
   const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
   const mapStyleUrl = `https://api.maptiler.com/maps/streets-v2-light/style.json?key=${mapTilerKey}`;
 
-  const { data: networkDetail, isLoading } = useNetworkDetailQuery(networkId);
+  const { data: networkDetail, isLoading } =
+    useGetNetworkDetailQuery(networkId);
 
   const markers = useMemo(() => {
     if (!isMapLoaded) return null;
