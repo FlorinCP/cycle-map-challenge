@@ -1,15 +1,13 @@
 'use client';
 
-import { type MapRef } from '@vis.gl/react-maplibre';
+import { Map, type MapRef } from '@vis.gl/react-maplibre';
 import { LngLatBounds } from 'maplibre-gl';
-import React, { useRef, useMemo, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-
-import type { NetworkSummary } from '@/types/city-bikes';
+import * as maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { filterNetworks } from '@/api/utils';
-import MapWrapper from '@/components/map/map-wrapper';
 import { useListNetworksQuery } from '@/api';
-import { NetworkMarker } from '@/components/map/network-marker';
 import { NearMeButton } from '@/components/networks/list/near-me-button';
 
 interface Props {
@@ -32,10 +30,9 @@ export const NetworksMap: React.FC<Props> = ({
   initialZoom = DefaultMapInitialState.zoom,
 }) => {
   const searchParams = useSearchParams();
-  // const prefetchNetworkDetail = usePrefetchNetworkDetail();
-
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const countryCode = searchParams.get('country');
   const searchTerm = searchParams.get('search');
@@ -50,35 +47,156 @@ export const NetworksMap: React.FC<Props> = ({
     [router]
   );
 
-  const markers = useMemo(() => {
-    if (allNetworks && !isLoadingNetworks) {
-      const filtered = filterNetworks(allNetworks, countryCode, searchTerm);
-      return filtered.map((network: NetworkSummary) => (
-        <NetworkMarker
-          key={network.id}
-          network={network}
-          onClick={() => handleNetworkMarkerClick(network.id)}
-          // onMouseEnter={() => prefetchNetworkDetail(network.id)}
-        />
-      ));
-    }
-    return null;
-  }, [
-    allNetworks,
-    isLoadingNetworks,
-    countryCode,
-    searchTerm,
-    handleNetworkMarkerClick,
-    // prefetchNetworkDetail,
-  ]);
+  // Set up event handlers
+  const setupEventHandlers = useCallback(
+    (map: maplibregl.Map) => {
+      // Initialize popup
+      const popup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        offset: 15,
+      });
 
+      // Click on marker
+      map.on('click', 'network-markers', e => {
+        if (e.features && e.features.length > 0) {
+          const feature = e.features[0];
+          const networkId = feature.properties?.id;
+
+          if (networkId) {
+            handleNetworkMarkerClick(networkId);
+            e.preventDefault();
+          }
+        }
+      });
+
+      // Change cursor on hover
+      map.on('mouseenter', 'network-markers', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+
+      map.on('mouseleave', 'network-markers', () => {
+        map.getCanvas().style.cursor = '';
+      });
+
+      // Show popup on hover
+      map.on('mouseenter', 'network-markers', e => {
+        if (e.features && e.features.length > 0) {
+          const feature = e.features[0];
+          const coordinates = (feature.geometry as any).coordinates.slice();
+          const { name, city, country } = feature.properties || {};
+
+          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+          }
+
+          popup
+            .setLngLat(coordinates)
+            .setHTML(
+              `
+            <div class="p-2">
+              <h3 class="font-bold">${name}</h3>
+              <p class="text-sm">${city}, ${country}</p>
+            </div>
+          `
+            )
+            .addTo(map);
+        }
+      });
+
+      map.on('mouseleave', 'network-markers', () => {
+        popup.remove();
+      });
+    },
+    [handleNetworkMarkerClick]
+  );
+
+  // Initialize map data
+  const initializeMapData = useCallback(
+    (map: maplibregl.Map) => {
+      if (!allNetworks) return;
+
+      const filtered = filterNetworks(allNetworks, countryCode, searchTerm);
+
+      const geojson = {
+        type: 'FeatureCollection' as const,
+        features: filtered.map(network => ({
+          type: 'Feature' as const,
+          geometry: {
+            type: 'Point' as const,
+            coordinates: [
+              network.location.longitude,
+              network.location.latitude,
+            ],
+          },
+          properties: {
+            id: network.id,
+            name: network.name,
+            city: network.location.city,
+            country: network.location.country,
+          },
+        })),
+      };
+
+      // Remove existing layers and source if they exist
+      if (map.getLayer('network-markers')) map.removeLayer('network-markers');
+      if (map.getSource('networks')) map.removeSource('networks');
+
+      // Add source without clustering
+      map.addSource('networks', {
+        type: 'geojson',
+        data: geojson,
+      });
+
+      // Add markers layer
+      map.addLayer({
+        id: 'network-markers',
+        type: 'circle',
+        source: 'networks',
+        paint: {
+          'circle-color': '#1E40AF',
+          'circle-radius': 6,
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#ffffff',
+          'circle-opacity': 0.8,
+        },
+      });
+
+      // Set up event handlers
+      setupEventHandlers(map);
+    },
+    [allNetworks, countryCode, searchTerm, setupEventHandlers]
+  );
+
+  // Handle map load
+  const onMapLoad = useCallback(() => {
+    setMapLoaded(true);
+    const map = mapRef.current?.getMap();
+    if (map && allNetworks) {
+      initializeMapData(map);
+    }
+  }, [allNetworks, initializeMapData]);
+
+  // Update map data when data or filters change
   useEffect(() => {
-    if (!mapRef.current || !allNetworks || isLoadingNetworks) return;
+    if (!mapLoaded || !mapRef.current || !allNetworks) return;
+
+    const map = mapRef.current.getMap();
+    if (!map) return;
+
+    // Re-initialize map data
+    initializeMapData(map);
+  }, [mapLoaded, allNetworks, countryCode, searchTerm, initializeMapData]);
+
+  // Handle bounds fitting when filters change
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !allNetworks) return;
 
     const map = mapRef.current.getMap();
     if (!map) return;
 
     const filtered = filterNetworks(allNetworks, countryCode, searchTerm);
+
     if (filtered.length > 0) {
       const bounds = new LngLatBounds();
       filtered.forEach(network => {
@@ -86,7 +204,11 @@ export const NetworksMap: React.FC<Props> = ({
       });
 
       if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, { padding: 40, maxZoom: 14, duration: 1000 });
+        map.fitBounds(bounds, {
+          padding: 50,
+          maxZoom: 14,
+          duration: 1000,
+        });
       }
     } else {
       map.flyTo({
@@ -96,8 +218,8 @@ export const NetworksMap: React.FC<Props> = ({
       });
     }
   }, [
+    mapLoaded,
     allNetworks,
-    isLoadingNetworks,
     countryCode,
     searchTerm,
     initialLatitude,
@@ -106,12 +228,29 @@ export const NetworksMap: React.FC<Props> = ({
   ]);
 
   return (
-    <MapWrapper ref={mapRef} isLoading={isLoadingNetworks}>
-      <span className={"absolute top-8 left-8 z-10 flex items-center"}>
-        <NearMeButton />
-      </span>
-      {markers}
-    </MapWrapper>
+    <div className="relative w-full h-full">
+      <Map
+        ref={mapRef}
+        initialViewState={{
+          longitude: initialLongitude,
+          latitude: initialLatitude,
+          zoom: initialZoom,
+        }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+        onLoad={onMapLoad}
+      >
+        <span className={'absolute top-8 left-8 z-10 flex items-center'}>
+          <NearMeButton />
+        </span>
+      </Map>
+
+      {isLoadingNetworks && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+          <div className="loader">Loading...</div>
+        </div>
+      )}
+    </div>
   );
 };
 

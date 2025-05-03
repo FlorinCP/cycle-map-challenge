@@ -15,7 +15,6 @@ export const NetworkMarker: React.FC<Props> = ({
 }) => {
   return (
     <Marker
-      key={`network-${network.id}`}
       longitude={network.location.longitude}
       latitude={network.location.latitude}
       anchor="bottom"
