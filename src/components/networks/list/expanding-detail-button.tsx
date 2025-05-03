@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { usePrefetchNetworkDetail } from '@/hooks/queries/use-network-query-detail';
+import { usePrefetchMap } from '@/hooks/map/use-prefetch-map';
 
 interface ExpandingDetailButtonProps {
   id: string;
@@ -14,7 +14,7 @@ export function ExpandingDetailButton({
   id,
   className,
 }: ExpandingDetailButtonProps) {
-  const prefetchNetworkDetail = usePrefetchNetworkDetail();
+  const prefetchNetworkDetail = usePrefetchMap();
 
   return (
     <Link

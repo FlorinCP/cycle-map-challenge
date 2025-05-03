@@ -94,12 +94,14 @@ export const NetworkDetailMap: React.FC<Props> = ({
       )}
 
       <Map
-        ref={reactMapRef} // Ref for the React component
-        onLoad={onMapLoad} // Get the actual map instance on load
+        ref={reactMapRef}
+        onLoad={onMapLoad}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyleUrl}
         renderWorldCopies={false}
         reuseMaps
+        maxTileCacheSize={100}
+        refreshExpiredTiles={false}
       >
         {markers}
       </Map>

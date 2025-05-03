@@ -4,7 +4,7 @@ import { networkQueryKeys } from '@/lib/api/query-keys';
 
 const BASE_URL = 'https://api.citybik.es/v2';
 
-const fetchNetworkById = async (id: string): Promise<NetworkDetail> => {
+export const fetchNetworkById = async (id: string): Promise<NetworkDetail> => {
   const response = await fetch(`${BASE_URL}/networks/${id}`);
 
   if (!response.ok) {
