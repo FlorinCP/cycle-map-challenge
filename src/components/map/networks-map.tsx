@@ -2,13 +2,15 @@
 
 import { Map, type MapRef } from '@vis.gl/react-maplibre';
 import { LngLatBounds } from 'maplibre-gl';
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { filterNetworks } from '@/api/utils';
 import { useListNetworksQuery } from '@/api';
 import { NearMeButton } from '@/components/networks/list/near-me-button';
+import { SEARCH_PARAMS } from '@/types/search-params';
+import { findNetworksProgressively } from '@/lib/location-utils';
 
 interface Props {
   initialLongitude?: number;
@@ -25,10 +27,10 @@ const DefaultMapInitialState = {
 };
 
 export const NetworksMap: React.FC<Props> = ({
-  initialLatitude = DefaultMapInitialState.latitude,
-  initialLongitude = DefaultMapInitialState.longitude,
-  initialZoom = DefaultMapInitialState.zoom,
-}) => {
+                                               initialLatitude = DefaultMapInitialState.latitude,
+                                               initialLongitude = DefaultMapInitialState.longitude,
+                                               initialZoom = DefaultMapInitialState.zoom,
+                                             }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
@@ -36,6 +38,8 @@ export const NetworksMap: React.FC<Props> = ({
 
   const countryCode = searchParams.get('country');
   const searchTerm = searchParams.get('search');
+  const userLat = searchParams.get(SEARCH_PARAMS.LAT);
+  const userLng = searchParams.get(SEARCH_PARAMS.LNG);
 
   const { data: allNetworks, isLoading: isLoadingNetworks } =
     useListNetworksQuery();
@@ -46,6 +50,41 @@ export const NetworksMap: React.FC<Props> = ({
     },
     [router]
   );
+
+  // Calculate filtered networks with progressive search
+  const { filteredNetworks, searchRadius } = useMemo(() => {
+    if (!allNetworks || isLoadingNetworks)
+      return { filteredNetworks: [], searchRadius: 0 };
+
+    // If user location is provided, use progressive search
+    if (userLat && userLng) {
+      const result = findNetworksProgressively(
+        allNetworks,
+        parseFloat(userLat),
+        parseFloat(userLng),
+        countryCode,
+        searchTerm,
+        [10, 50, 100, 200] // Search radii in kilometers
+      );
+      return {
+        filteredNetworks: result.networks,
+        searchRadius: result.searchRadius,
+      };
+    }
+
+    // Otherwise, use standard filtering
+    return {
+      filteredNetworks: filterNetworks(allNetworks, countryCode, searchTerm),
+      searchRadius: 0,
+    };
+  }, [
+    allNetworks,
+    isLoadingNetworks,
+    countryCode,
+    searchTerm,
+    userLat,
+    userLng,
+  ]);
 
   // Set up event handlers
   const setupEventHandlers = useCallback(
@@ -114,13 +153,16 @@ export const NetworksMap: React.FC<Props> = ({
   // Initialize map data
   const initializeMapData = useCallback(
     (map: maplibregl.Map) => {
-      if (!allNetworks) return;
-
-      const filtered = filterNetworks(allNetworks, countryCode, searchTerm);
+      if (!filteredNetworks || filteredNetworks.length === 0) {
+        // Remove existing layers and source if no networks
+        if (map.getLayer('network-markers')) map.removeLayer('network-markers');
+        if (map.getSource('networks')) map.removeSource('networks');
+        return;
+      }
 
       const geojson = {
         type: 'FeatureCollection' as const,
-        features: filtered.map(network => ({
+        features: filteredNetworks.map(network => ({
           type: 'Feature' as const,
           geometry: {
             type: 'Point' as const,
@@ -165,63 +207,128 @@ export const NetworksMap: React.FC<Props> = ({
       // Set up event handlers
       setupEventHandlers(map);
     },
-    [allNetworks, countryCode, searchTerm, setupEventHandlers]
+    [filteredNetworks, setupEventHandlers]
   );
 
   // Handle map load
   const onMapLoad = useCallback(() => {
     setMapLoaded(true);
     const map = mapRef.current?.getMap();
-    if (map && allNetworks) {
+    if (map) {
       initializeMapData(map);
     }
-  }, [allNetworks, initializeMapData]);
+  }, [initializeMapData]);
 
-  // Update map data when data or filters change
+  // Update map data when filtered networks change
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !allNetworks) return;
+    if (!mapLoaded || !mapRef.current) return;
 
     const map = mapRef.current.getMap();
     if (!map) return;
 
-    // Re-initialize map data
+    // Re-initialize map data with the current filteredNetworks
     initializeMapData(map);
-  }, [mapLoaded, allNetworks, countryCode, searchTerm, initializeMapData]);
+  }, [mapLoaded, filteredNetworks, initializeMapData]);
 
-  // Handle bounds fitting when filters change
+  // Handle bounds fitting with proper zoom levels
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !allNetworks) return;
+    if (!mapLoaded || !mapRef.current) return;
 
     const map = mapRef.current.getMap();
     if (!map) return;
 
-    const filtered = filterNetworks(allNetworks, countryCode, searchTerm);
+    // Use setTimeout to ensure the map is ready for animations
+    const timeoutId = setTimeout(() => {
+      if (filteredNetworks.length > 0) {
+        const bounds = new LngLatBounds();
 
-    if (filtered.length > 0) {
-      const bounds = new LngLatBounds();
-      filtered.forEach(network => {
-        bounds.extend([network.location.longitude, network.location.latitude]);
-      });
+        // If user location is provided, include it in the bounds
+        if (userLat && userLng) {
+          bounds.extend([parseFloat(userLng), parseFloat(userLat)]);
+        }
 
-      if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, {
-          padding: 50,
-          maxZoom: 14,
+        filteredNetworks.forEach(network => {
+          bounds.extend([network.location.longitude, network.location.latitude]);
+        });
+
+        if (!bounds.isEmpty()) {
+          let maxZoom = 15;
+          let padding = 50;
+
+          // Adjust zoom based on search radius
+          if (searchRadius === -1) {
+            // Showing all networks
+            maxZoom = 8;
+            padding = 60;
+          } else if (searchRadius >= 200) {
+            maxZoom = 9;
+            padding = 60;
+          } else if (searchRadius >= 100) {
+            maxZoom = 10;
+            padding = 50;
+          } else if (searchRadius >= 50) {
+            maxZoom = 11;
+            padding = 40;
+          } else if (searchRadius >= 20) {
+            maxZoom = 12;
+            padding = 40;
+          } else if (searchRadius <= 10) {
+            // Very close networks, zoom in more
+            maxZoom = 13;
+            padding = 30;
+          }
+
+          // If only one network is found, zoom in closer
+          if (filteredNetworks.length === 1) {
+            maxZoom = Math.min(maxZoom + 1, 15);
+          }
+
+          // Log for debugging
+          console.log('Fitting bounds:', {
+            bounds: bounds.toArray(),
+            maxZoom,
+            padding,
+            searchRadius,
+            networkCount: filteredNetworks.length
+          });
+
+          map.fitBounds(bounds, {
+            padding: padding,
+            maxZoom: maxZoom,
+            duration: 1000,
+            essential: true // This forces the animation to complete
+          });
+        }
+      } else if (userLat && userLng) {
+        // If no networks found but user location exists, center on user
+        console.log('Flying to user location:', [parseFloat(userLng), parseFloat(userLat)]);
+
+        map.flyTo({
+          center: [parseFloat(userLng), parseFloat(userLat)],
+          zoom: 12,
           duration: 1000,
+          essential: true
+        });
+      } else {
+        // Default view
+        console.log('Flying to default view');
+
+        map.flyTo({
+          center: [initialLongitude, initialLatitude],
+          zoom: initialZoom,
+          duration: 1000,
+          essential: true
         });
       }
-    } else {
-      map.flyTo({
-        center: [initialLongitude, initialLatitude],
-        zoom: initialZoom,
-        duration: 1000,
-      });
-    }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [
     mapLoaded,
-    allNetworks,
-    countryCode,
-    searchTerm,
+    filteredNetworks,
+    searchRadius,
+    userLat,
+    userLng,
     initialLatitude,
     initialLongitude,
     initialZoom,
@@ -239,11 +346,23 @@ export const NetworksMap: React.FC<Props> = ({
         style={{ width: '100%', height: '100%' }}
         mapStyle="https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json"
         onLoad={onMapLoad}
+        dragRotate={false}
+        pitchWithRotate={false}
+        touchZoomRotate={false}
       >
         <span className={'absolute top-8 left-8 z-10 flex items-center'}>
           <NearMeButton />
         </span>
       </Map>
+
+      {/* Search radius indicator */}
+      {userLat && userLng && searchRadius > 0 && (
+        <div className="absolute top-8 right-8 z-10 bg-white px-3 py-2 rounded-lg shadow-md text-sm">
+          {searchRadius === -1
+            ? 'Showing all networks (no networks found nearby)'
+            : `Showing networks within ${searchRadius}km`}
+        </div>
+      )}
 
       {isLoadingNetworks && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50">

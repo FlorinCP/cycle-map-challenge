@@ -29,8 +29,6 @@ export const NetworkDetailMap: React.FC<Props> = ({
   const mapRefGL = useRef<MapLibreMap | null>(null);
   const reactMapRef = useRef<MapRef>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
-  const mapStyleUrl = `https://api.maptiler.com/maps/streets-v2-light/style.json?key=${mapTilerKey}`;
 
   const { data: networkDetail, isLoading } =
     useGetNetworkDetailQuery(networkId);
@@ -98,7 +96,7 @@ export const NetworkDetailMap: React.FC<Props> = ({
         ref={reactMapRef}
         onLoad={onMapLoad}
         style={{ width: '100%', height: '100%' }}
-        mapStyle={mapStyleUrl}
+        mapStyle="https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json"
         renderWorldCopies={false}
         reuseMaps
         maxTileCacheSize={100}
