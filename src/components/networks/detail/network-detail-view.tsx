@@ -1,23 +1,23 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, BriefcaseBusiness, MapPin } from 'lucide-react';
-
-import type {
-  Station,
-  StationSortKey,
-  SortDirection,
-} from '@/types/city-bikes';
-
-import { calculateTotalPages, paginateItems, sortStations } from '@/api/utils';
 import StationListItem from '@/components/networks/detail/station-list-item';
-import PaginationControls from '@/components/networks/detail/pagination-controls';
 import StationListHeader from '@/components/networks/detail/station-list-header';
 import { cn } from '@/lib/utils';
-import { useGetNetworkDetailQuery } from '@/api';
+import { Station } from '@/types/city-bikes';
+import { usePaginatedNetworkDetal } from '@/hooks/use-paginated-network-detail';
+import { PaginationNav } from '@/components/networks/list/pagination-nav';
+import { STATION_ITEMS_PER_PAGE } from '@/types/search-params';
 
-const STATIONS_PER_PAGE = 20;
+const getCompanyDisplay = (
+  company: string | string[] | undefined | null
+): string => {
+  if (!company) return 'N/A';
+  const companies = Array.isArray(company) ? company : [company];
+  return companies.filter(Boolean).join(', ') || 'N/A';
+};
 
 interface NetworkDetailDisplayProps {
   networkId: string;
@@ -28,44 +28,8 @@ export default function NetworkDetailView({
   networkId,
   selectedStationId,
 }: NetworkDetailDisplayProps) {
-  const [sortConfig, setSortConfig] = useState<{
-    key: StationSortKey | null;
-    direction: SortDirection;
-  }>({ key: null, direction: 'asc' });
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const { data: networkDetail } = useGetNetworkDetailQuery(networkId);
-
-  const handleSortChange = (newConfig: {
-    key: StationSortKey | null;
-    direction: SortDirection;
-  }) => {
-    setSortConfig(newConfig);
-    setCurrentPage(1);
-  };
-
-  const processedStations = useMemo(() => {
-    if (!networkDetail?.stations) return { paginated: [], totalPages: 0 };
-
-    const sorted = sortStations(
-      networkDetail.stations,
-      sortConfig.key,
-      sortConfig.direction
-    );
-
-    const paginated = paginateItems(sorted, currentPage, STATIONS_PER_PAGE);
-    const totalPages = calculateTotalPages(sorted.length, STATIONS_PER_PAGE);
-
-    return { paginated, totalPages };
-  }, [networkDetail?.stations, sortConfig, currentPage]);
-
-  const getCompanyDisplay = (
-    company: string | string[] | undefined | null
-  ): string => {
-    if (!company) return 'N/A';
-    const companies = Array.isArray(company) ? company : [company];
-    return companies.filter(Boolean).join(', ') || 'N/A';
-  };
+  const { networkDetail, stations, currentPage, totalPages } =
+    usePaginatedNetworkDetal(networkId);
 
   return (
     <div className="flex flex-col w-full max-h-screen min-h-screen overflow-y-auto bg-primary">
@@ -125,16 +89,12 @@ export default function NetworkDetailView({
               !!selectedStationId ? 'py-2' : 'py-0'
             )}
           >
-            {' '}
-            <StationListHeader
-              sortConfig={sortConfig}
-              onSortChange={handleSortChange}
-            />
+            <StationListHeader />
           </div>
 
           <div className={'pb-6'}>
-            {processedStations.paginated.length > 0 ? (
-              processedStations.paginated.map((station: Station) => (
+            {stations.length > 0 ? (
+              stations.map((station: Station) => (
                 <StationListItem
                   key={station.id}
                   station={station}
@@ -152,11 +112,10 @@ export default function NetworkDetailView({
             )}
           </div>
 
-          {processedStations.totalPages > 1 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={processedStations.totalPages}
-              onPageChange={setCurrentPage}
+          {totalPages > 1 && (
+            <PaginationNav
+              totalPages={totalPages}
+              pageSize={STATION_ITEMS_PER_PAGE}
             />
           )}
         </>

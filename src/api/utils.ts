@@ -1,9 +1,5 @@
-import type {
-  NetworkSummary,
-  SortDirection,
-  Station,
-  StationSortKey,
-} from '@/types/city-bikes';
+import type { NetworkSummary, Station } from '@/types/city-bikes';
+import { SortDirection, StationSortKey } from '@/types/search-params';
 
 /**
  * Filters a list of networks based on country code and a search term.
