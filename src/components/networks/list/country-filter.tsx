@@ -42,9 +42,9 @@ export default function CountryFilter() {
         />
       </SelectTrigger>
       <SelectContent className={'h-[400px] overflow-y-auto'}>
-        <SelectItem value="ALL">All Countries</SelectItem>
+        <SelectItem value="ALL" className={"cursor-pointer"}>All Countries</SelectItem>
         {countries.data.map(country => (
-          <SelectItem key={country.code} value={country.code}>
+          <SelectItem key={country.code} value={country.code} className={"cursor-pointer"}>
             {country.name} ({country.code})
           </SelectItem>
         ))}
