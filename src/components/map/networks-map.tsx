@@ -10,6 +10,7 @@ import { filterNetworks } from '@/api/utils';
 import MapWrapper from '@/components/map/map-wrapper';
 import { useListNetworksQuery } from '@/api';
 import { NetworkMarker } from '@/components/map/network-marker';
+import { NearMeButton } from '@/components/networks/list/near-me-button';
 
 interface Props {
   initialLongitude?: number;
@@ -106,6 +107,9 @@ export const NetworksMap: React.FC<Props> = ({
 
   return (
     <MapWrapper ref={mapRef} isLoading={isLoadingNetworks}>
+      <div className={"absolute top-8 left-8 z-10 flex items-center gap-2"}>
+        <NearMeButton />
+      </div>
       {markers}
     </MapWrapper>
   );

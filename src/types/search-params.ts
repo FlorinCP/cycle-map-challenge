@@ -2,6 +2,10 @@ export enum SEARCH_PARAMS {
   COUNTRY = 'country',
   SEARCH = 'search',
   PAGE = 'page',
+  LAT = 'lat',
+  LNG = 'lng',
+  SORT_KEY = 'sort_key',
+  SORT_DIRECTION = 'sort_direction',
 }
 
 export type StationSortKey = 'free_bikes' | 'empty_slots';
