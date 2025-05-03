@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { ArrowLeft, BriefcaseBusiness, MapPin } from 'lucide-react';
 import StationListItem from '@/components/networks/detail/station-list-item';
 import StationListHeader from '@/components/networks/detail/station-list-header';
@@ -10,6 +9,7 @@ import { Station } from '@/types/city-bikes';
 import { usePaginatedNetworkDetal } from '@/hooks/use-paginated-network-detail';
 import { PaginationNav } from '@/components/networks/list/pagination-nav';
 import { STATION_ITEMS_PER_PAGE } from '@/types/search-params';
+import { useRouter } from 'next/navigation';
 
 const getCompanyDisplay = (
   company: string | string[] | undefined | null
@@ -30,6 +30,15 @@ export default function NetworkDetailView({
 }: NetworkDetailDisplayProps) {
   const { networkDetail, stations, currentPage, totalPages } =
     usePaginatedNetworkDetal(networkId);
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/networks');
+    }
+  };
 
   return (
     <div className="flex flex-col w-full max-h-screen min-h-screen overflow-y-auto bg-primary">
@@ -41,12 +50,12 @@ export default function NetworkDetailView({
           backgroundColor: 'lightgray',
         }}
       >
-        <Link
-          href="/networks"
+        <button
+          onClick={handleBack}
           className="text-grenadier-500 h-10 w-10 rounded-full bg-white grid place-content-center flex-shrink-0"
         >
           <ArrowLeft className="h-4 w-4" />
-        </Link>
+        </button>
         <div className={'flex gap-2 flex-col'}>
           <h1 className="text-3xl font-bold text-white">
             {networkDetail?.name}
