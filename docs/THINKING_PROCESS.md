@@ -105,12 +105,11 @@ The Home page is just a redirect to `/networks` because I felt like it's more cl
 
 ## Main View Features
 
-The main view component can be found in [`./components/networks/list/networks-list-view.tsx`](../components/networks/list/networks-list-view.tsx)
-
 Besides completing the required points, for optimizing loading times on navigation to detail view:
 
 - I've added a **prefetch on hover** over the DetailButton
-- I think I could have gone an extra step to see if I can prefetch the map tiles, but I'm afraid that for the moment at least I don't have that much experience to make it work and I would not be able to properly explain it
+- I think I could have gone an extra step to see if I can prefetch the map tiles. However, I'm afraid that for the moment at least I don't have that much experience to make it work and I would not be able to properly explain it
+- I've tried to add prefetch on hover over the map Markers, but that would make to many requests, at lest in the current set-up
 
 I also added a **PWA functionality** to generate service workers that should handle some level of caching.
 This is not necessarily since I could add some workers by myself but I wanted to show that I know that PWA exists.
@@ -180,3 +179,58 @@ The component would benefit from:
 - Better separation into custom hooks
 - Enhanced loading states that account for map asset rendering
 - More granular error handling
+
+
+# Detail View Features
+
+Beyond the required objectives, the following enhancements were implemented:
+
+## Station Pagination
+
+Client-side pagination follows the same pattern as network pagination. Sorting is managed through the `<StationListHeader />` component using URL state management with these interfaces:
+
+```ts
+export type StationSortKey = 'free_bikes' | 'empty_slots';
+export type SortDirection = 'asc' | 'desc';
+```
+
+The Station List View includes a basic loading state via `StationListItem`. Error scenarios using `isError` could be further developed.
+
+The back button provides a simple redirect to `/networks` without preserving MainView state (including pagination history), which would require additional development.
+
+## NetworkDetailMap
+
+The `<NetworkDetailMap />` component follows similar patterns to `<NetworkListMap />`, particularly in interaction handling.
+
+Upon rendering, it calculates bounding points and displays the map optimally zoomed to the network's stations without unnecessary animations.
+
+Some components would benefit from refactoring, such as the popup HTML structure:
+
+```tsx
+const html = `
+  <div class="p-4 flex flex-col gap-2">
+```
+
+The hover/click interactions for markers need refinement.
+
+## Data Flow
+
+```tsx
+<NetworkDetailView
+  networkId={id}
+  selectedStationId={selectedStationId}
+/>
+<NetworkDetailMap
+  networkId={id}
+  onSelectStation={setSelectedStationId}
+/>
+```
+
+I considered storing `selectedStationId` in the URL but opted for state lifting to avoid bloating the browser history during frequent hover interactions.
+
+
+# Unfilled Points
+
+I couldn't implement the animation of the left layout column, specifically the slide in-out transition for NetworkList and NetworkDetail components on route changes.
+The hover/click over the Markers in the `NetworkDetailMap` are not as fluid as desired.
+
