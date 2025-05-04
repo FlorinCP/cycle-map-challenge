@@ -10,22 +10,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MapPin } from 'lucide-react';
+import { SEARCH_PARAMS } from '@/types/search-params';
 
 export default function CountryFilter() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const currentCountry = searchParams.get('country') || '';
+  const currentCountry = searchParams.get(SEARCH_PARAMS.COUNTRY) || '';
 
   const handleCountryChange = (value: string) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()));
 
     if (!value || value === 'ALL') {
-      current.delete('country');
+      current.delete(SEARCH_PARAMS.COUNTRY);
     } else {
-      current.set('country', value);
+      current.set(SEARCH_PARAMS.COUNTRY, value);
     }
-    current.set('page', '1');
+    current.set(SEARCH_PARAMS.PAGE, '1');
 
     const search = current.toString();
     const query = search ? `?${search}` : '';

@@ -6,6 +6,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Search, X } from 'lucide-react';
 import debounce from 'lodash.debounce';
+import { SEARCH_PARAMS } from '@/types/search-params';
 
 interface NetworkSearchInputProps {
   placeholder?: string;
@@ -21,7 +22,7 @@ export default function NetworkSearchInput({
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const initialSearch = searchParams.get('search') || '';
+  const initialSearch = searchParams.get(SEARCH_PARAMS.SEARCH) || '';
   const [inputValue, setInputValue] = useState(initialSearch);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -41,11 +42,11 @@ export default function NetworkSearchInput({
       );
 
       if (!term.trim()) {
-        current.delete('search');
+        current.delete(SEARCH_PARAMS.SEARCH);
       } else {
-        current.set('search', term.trim());
+        current.set(SEARCH_PARAMS.SEARCH, term.trim());
       }
-      current.set('page', '1');
+      current.set(SEARCH_PARAMS.PAGE, '1');
 
       const search = current.toString();
       const query = search ? `?${search}` : '';
