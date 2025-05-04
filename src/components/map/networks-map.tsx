@@ -16,6 +16,7 @@ import { useListNetworksQuery } from '@/api';
 import { NearMeButton } from '@/components/networks/list/near-me-button';
 import { SEARCH_PARAMS } from '@/types/search-params';
 import { findNetworksProgressively } from '@/lib/location-utils';
+import { useGeojsonData } from '@/hooks/map/use-geo-json-data';
 
 interface Props {
   initialLongitude?: number;
@@ -94,24 +95,7 @@ export const NetworksMap: React.FC<Props> = ({
     userLng,
   ]);
 
-  const geojsonData = useMemo(() => {
-    return {
-      type: 'FeatureCollection' as const,
-      features: filteredNetworks.map(network => ({
-        type: 'Feature' as const,
-        geometry: {
-          type: 'Point' as const,
-          coordinates: [network.location.longitude, network.location.latitude],
-        },
-        properties: {
-          id: network.id,
-          name: network.name,
-          city: network.location.city,
-          country: network.location.country,
-        },
-      })),
-    };
-  }, [filteredNetworks]);
+  const geojsonData = useGeojsonData(filteredNetworks);
 
   const mapBounds = useMemo(() => {
     if (filteredNetworks.length === 0) return null;
@@ -261,7 +245,7 @@ export const NetworksMap: React.FC<Props> = ({
         cursor={hoveredFeature ? 'pointer' : 'auto'}
       >
         <span className={'absolute top-8 left-8 z-10 flex items-center'}>
-          <NearMeButton />
+          <NearMeButton  />
         </span>
 
         {geojsonData.features.length > 0 && (

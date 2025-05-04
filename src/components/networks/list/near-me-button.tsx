@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { LocateIcon, Loader2, Globe, ArrowLeft } from 'lucide-react';
+import { LocateIcon, Loader2, ArrowLeft } from 'lucide-react';
 import { SEARCH_PARAMS } from '@/types/search-params';
 
 export const NearMeButton = () => {
@@ -41,7 +41,7 @@ export const NearMeButton = () => {
 
       const { latitude, longitude } = position.coords;
 
-      const params = new URLSearchParams(searchParams);
+      const params = new URLSearchParams();
       params.set(SEARCH_PARAMS.LAT, latitude.toString());
       params.set(SEARCH_PARAMS.LNG, longitude.toString());
 
@@ -54,11 +54,8 @@ export const NearMeButton = () => {
   };
 
   const handleGlobeClick = () => {
-    const params = new URLSearchParams(searchParams);
-    params.delete(SEARCH_PARAMS.LAT);
-    params.delete(SEARCH_PARAMS.LNG);
-
-    router.push(`${pathname}?${params.toString()}`);
+    // Navigate to path without any query params
+    router.push(pathname);
   };
 
   const isLocationSet = currentLat && currentLng;
