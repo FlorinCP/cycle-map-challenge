@@ -206,7 +206,7 @@ export const NetworkListMap: React.FC<Props> = ({
       </Map>
 
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+        <div className="absolute bg-zinc-50 inset-0 flex items-center justify-center bg-white/50">
           <Spinner />
         </div>
       )}
