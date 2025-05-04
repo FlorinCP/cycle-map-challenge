@@ -7,7 +7,7 @@ import type { MapLayerMouseEvent } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
 import { useGetNetworkDetailQuery } from '@/api';
 import { Spinner } from '@/components/ui/spinner';
-import { useStationGeojsonData } from '@/hooks/map/use-station-list-geo-json-data';
+import { useStationGeoJsonData } from '@/hooks/map/use-station-list-geo-json-data';
 
 interface Props {
   networkId: string;
@@ -35,7 +35,7 @@ export const NetworkDetailMap: React.FC<Props> = ({
 
   const { data: networkDetail, isLoading } =
     useGetNetworkDetailQuery(networkId);
-  const geojsonData = useStationGeojsonData(networkDetail?.stations);
+  const geojsonData = useStationGeoJsonData(networkDetail?.stations);
 
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -105,6 +105,7 @@ export const NetworkDetailMap: React.FC<Props> = ({
         );
         hoveredId = null;
       }
+      onSelectStation(null);
       popupRef.current?.remove();
     });
 

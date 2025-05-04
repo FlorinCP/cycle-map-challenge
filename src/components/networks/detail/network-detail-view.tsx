@@ -104,22 +104,26 @@ export default function NetworkDetailView({
                   }}
                 />
               ))}
-            {!isLoading && stations.length > 0 ? (
-              stations.map((station: Station) => (
-                <StationListItem
-                  key={station.id}
-                  station={station}
-                  isHighlighted={station.id === selectedStationId}
-                />
-              ))
-            ) : networkDetail && networkDetail?.stations.length > 0 ? (
-              <p className="text-center text-gray-500 mt-4">
-                No stations on this page ({currentPage}).
-              </p>
-            ) : (
-              <p className="text-center text-gray-500 mt-4">
-                No station data available for this network.
-              </p>
+            {!isLoading && (
+              <>
+                {stations.length > 0 ? (
+                  stations.map((station: Station) => (
+                    <StationListItem
+                      key={station.id}
+                      station={station}
+                      isHighlighted={station.id === selectedStationId}
+                    />
+                  ))
+                ) : networkDetail && networkDetail?.stations.length > 0 ? (
+                  <p className="text-center text-gray-500 mt-4">
+                    No stations on this page ({currentPage}).
+                  </p>
+                ) : (
+                  <p className="text-center text-gray-500 mt-4">
+                    No station data available for this network.
+                  </p>
+                )}
+              </>
             )}
           </div>
 
