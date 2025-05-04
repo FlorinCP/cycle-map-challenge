@@ -7,7 +7,23 @@ body {
   padding: 0;
   margin: 0;
   overflow-x: hidden;
-  width: 100vw;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+}
+
+#__next {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .maplibregl-popup {
@@ -28,7 +44,6 @@ body {
 
 @layer base {
   :root {
-    /* Base color definitions */
     --base-white: #ffffff;
     --zinc-50: #fafafa;
     --zinc-100: #f4f4f5;

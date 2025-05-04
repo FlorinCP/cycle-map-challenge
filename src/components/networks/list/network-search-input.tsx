@@ -104,7 +104,7 @@ export default function NetworkSearchInput({
         value={inputValue}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        className="pl-10 pr-10 py-6 rounded-full text-primary bg-white placeholder:text-primary border border-border leading-7 font-normal"
+        className="pl-10 pr-10 py-6 w-full rounded-full text-primary bg-white placeholder:text-primary border border-border leading-7 font-normal placeholder:truncate"
         aria-label="Search networks or companies"
         autoComplete="off"
         spellCheck="false"
