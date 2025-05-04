@@ -82,7 +82,7 @@ export default function NetworkDetailView({
           stations
         </h2>
 
-        <>
+        <div>
           <div
             className={cn(
               'sticky top-0 z-10 transition-all duration-300 ease-in-out',
@@ -134,7 +134,7 @@ export default function NetworkDetailView({
               pageSize={STATION_ITEMS_PER_PAGE}
             />
           )}
-        </>
+        </div>
       </div>
     </div>
   );
