@@ -6,7 +6,11 @@ import {
   sortStations,
   useGetNetworkDetailQuery,
 } from '@/api';
-import { SortDirection, StationSortKey } from '@/types/search-params';
+import {
+  SEARCH_PARAMS,
+  SortDirection,
+  StationSortKey,
+} from '@/types/search-params';
 
 export function usePaginatedNetworkDetal(
   networkId: string,
@@ -17,7 +21,7 @@ export function usePaginatedNetworkDetal(
   const sortKey = searchParams.get('sortBy') as StationSortKey | null;
   const sortDirection = (searchParams.get('sortDir') ||
     'desc') as SortDirection;
-  const currentPage = Number(searchParams.get('page') || '1');
+  const currentPage = Number(searchParams.get(SEARCH_PARAMS.PAGE) || '1');
 
   const { data: networkDetail, isLoading } =
     useGetNetworkDetailQuery(networkId);

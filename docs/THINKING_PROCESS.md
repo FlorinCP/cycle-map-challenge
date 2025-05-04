@@ -233,6 +233,8 @@ I considered storing `selectedStationId` in the URL but opted for state lifting 
 I couldn't implement the animation of the left layout column, specifically the slide in-out transition for NetworkList and NetworkDetail components on route changes.
 The hover/click over the Markers in the `NetworkDetailMap` are not as fluid as desired.
 The Tailwind config is not entirely aligned with the best practices
+More comments and JSDocs
+Simplify some hooks and reduce their number
 
 # Opinions, Challenges
 

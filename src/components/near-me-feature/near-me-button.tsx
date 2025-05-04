@@ -22,7 +22,7 @@ export const NearMeButton = () => {
     }
 
     if (isLocationSet) {
-      handleGlobeClick();
+      handleBackClick();
       return;
     }
 
@@ -53,8 +53,7 @@ export const NearMeButton = () => {
     }
   };
 
-  const handleGlobeClick = () => {
-    // Navigate to path without any query params
+  const handleBackClick = () => {
     router.push(pathname);
   };
 

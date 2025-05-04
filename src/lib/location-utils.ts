@@ -26,8 +26,7 @@ export function calculateDistance(
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-  return distance;
+  return R * c;
 }
 
 /**
@@ -76,48 +75,6 @@ export interface ProgressiveSearchResult {
 }
 
 /**
- * Enhanced filter function that includes location-based filtering
- *
- * @param networks - The array of NetworkSummary objects to filter.
- * @param countryCode - The ISO 3166-1 alpha-3 country code
- * @param searchTerm - The term to search for in network names and company names
- * @param userLat - User's latitude for location-based filtering
- * @param userLng - User's longitude for location-based filtering
- * @param maxDistance - Maximum distance in kilometers for location filtering
- * @returns A new array containing only the filtered networks.
- */
-export function filterNetworksEnhanced(
-  networks: NetworkSummary[],
-  countryCode?: string | null,
-  searchTerm?: string | null,
-  userLat?: number | null,
-  userLng?: number | null,
-  maxDistance: number = 50
-): NetworkSummary[] {
-  let filteredData = [...networks];
-
-  // First apply existing filters
-  filteredData = filterNetworks(filteredData, countryCode, searchTerm);
-
-  // Then apply location-based filtering if coordinates are provided
-  if (
-    userLat !== null &&
-    userLat !== undefined &&
-    userLng !== null &&
-    userLng !== undefined
-  ) {
-    filteredData = filterNetworksByDistance(
-      filteredData,
-      userLat,
-      userLng,
-      maxDistance
-    );
-  }
-
-  return filteredData;
-}
-
-/**
  * Performs a progressive search for networks, expanding the search radius until networks are found
  *
  * @param networks - The array of NetworkSummary objects to search
@@ -136,10 +93,8 @@ export function findNetworksProgressively(
   searchTerm?: string | null,
   searchRadii: number[] = [10, 50, 100, 200]
 ): ProgressiveSearchResult {
-  // First apply country and search filters
   let baseFilteredNetworks = filterNetworks(networks, countryCode, searchTerm);
 
-  // If no location provided, return all filtered networks
   if (
     userLat === null ||
     userLat === undefined ||
@@ -152,7 +107,6 @@ export function findNetworksProgressively(
     };
   }
 
-  // Try each search radius until we find networks
   for (const radius of searchRadii) {
     const nearbyNetworks = filterNetworksByDistance(
       baseFilteredNetworks,
@@ -169,8 +123,6 @@ export function findNetworksProgressively(
     }
   }
 
-  // If no networks found within any radius, return all filtered networks
-  // sorted by distance
   const allNetworksWithDistance = baseFilteredNetworks
     .map(network => ({
       ...network,
@@ -187,6 +139,6 @@ export function findNetworksProgressively(
     networks: allNetworksWithDistance.map(
       ({ distance, ...network }) => network
     ),
-    searchRadius: -1, // Indicates no radius restriction was applied
+    searchRadius: -1,
   };
 }
