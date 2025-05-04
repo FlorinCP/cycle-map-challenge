@@ -2,10 +2,13 @@
 
 import { ArrowUp, ArrowDown, ArrowDownUp } from 'lucide-react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import { SortDirection, StationSortKey } from '@/types/search-params';
+import {
+  SEARCH_PARAMS,
+  SortDirection,
+  StationSortKey,
+} from '@/types/search-params';
 
 interface SortControlsProps {
-  // Optional prop to specify custom search param names
   sortKeyParam?: string;
   sortDirectionParam?: string;
 }
@@ -38,8 +41,8 @@ export default function SortControls({
     params.set(sortKeyParam, key);
     params.set(sortDirectionParam, newDirection);
 
-    if (params.has('page')) {
-      params.set('page', '1');
+    if (params.has(SEARCH_PARAMS.PAGE)) {
+      params.set(SEARCH_PARAMS.PAGE, '1');
     }
 
     router.push(`${pathname}?${params.toString()}`);
