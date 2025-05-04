@@ -15,6 +15,7 @@ import { SearchRadiusIndicator } from '@/components/near-me-feature/search-radiu
 import { UserLocationMarker } from '@/components/near-me-feature/user-location-marker';
 import { useNetworkListFiltering } from '@/hooks/use-network-list-filtering';
 import { useMapState } from '@/hooks/map/use-map-dimesions';
+import { ZoomControls } from '@/components/map/zoom-controls';
 
 export const NetworkListMap: React.FC = () => {
   const mapState = useMapState();
@@ -165,11 +166,10 @@ export const NetworkListMap: React.FC = () => {
         dragRotate={false}
         pitchWithRotate={false}
         touchZoomRotate={false}
+        attributionControl={false}
       >
-        <span className="absolute top-8 left-8 z-10 flex items-center">
-          <NearMeButton />
-        </span>
-
+        <NearMeButton />
+        <ZoomControls mapRef={mapRef} />
         {geojsonData.features.length > 0 && (
           <Source
             id="networks"

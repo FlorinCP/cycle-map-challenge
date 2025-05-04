@@ -61,29 +61,31 @@ export const NearMeButton = () => {
   const isLocationSet = currentLat && currentLng;
 
   return (
-    <Button
-      onClick={handleLocationClick}
-      disabled={isLoading}
-      className="gap-2 items-center px-4! py-2 rounded-full leading-6 h-10"
-    >
-      {isLocationSet && (
-        <>
-          <ArrowLeft />
-          <p className="font-bold">Go back</p>
-        </>
-      )}
-      {!isLocationSet && isLoading && (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <p className="font-bold">Near me</p>
-        </>
-      )}
-      {!isLocationSet && !isLoading && (
-        <>
-          <LocateIcon className="h-4 w-4" />
-          <p className="font-bold">Near me</p>
-        </>
-      )}
-    </Button>
+    <span className="absolute top-8 left-8 z-10 flex items-center">
+      <Button
+        onClick={handleLocationClick}
+        disabled={isLoading}
+        className="gap-2 items-center px-4! py-2 rounded-full leading-6 h-10"
+      >
+        {isLocationSet && (
+          <>
+            <ArrowLeft />
+            <p className="font-bold">Go back</p>
+          </>
+        )}
+        {!isLocationSet && isLoading && (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <p className="font-bold">Near me</p>
+          </>
+        )}
+        {!isLocationSet && !isLoading && (
+          <>
+            <LocateIcon className="h-4 w-4" />
+            <p className="font-bold">Near me</p>
+          </>
+        )}
+      </Button>
+    </span>
   );
 };

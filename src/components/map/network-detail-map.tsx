@@ -14,6 +14,7 @@ import maplibregl from 'maplibre-gl';
 import { useGetNetworkDetailQuery } from '@/api';
 import { Spinner } from '@/components/ui/spinner';
 import { useStationGeoJsonData } from '@/hooks/map/use-station-list-geo-json-data';
+import { ZoomControls } from '@/components/map/zoom-controls';
 
 interface Props {
   networkId: string;
@@ -196,6 +197,8 @@ export const NetworkDetailMap: React.FC<Props> = ({
         touchZoomRotate={false}
         initialViewState={initialViewState}
       >
+        <ZoomControls mapRef={mapRef} />
+
         {geojsonData.features.length > 0 && (
           <Source
             id="stations"
