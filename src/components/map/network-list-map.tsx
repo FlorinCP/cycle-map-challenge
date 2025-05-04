@@ -1,10 +1,11 @@
 'use client';
 
-import { Map, type MapRef, Layer, Source, Popup } from '@vis.gl/react-maplibre';
+import { Map, type MapRef, Layer, Source } from '@vis.gl/react-maplibre';
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
+import maplibregl from 'maplibre-gl';
 import { NearMeButton } from '@/components/near-me-feature/near-me-button';
 import { useGeojsonData } from '@/hooks/map/use-geo-json-data';
 import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
@@ -35,13 +36,7 @@ export const NetworkListMap: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
-  const [hoveredFeature, setHoveredFeature] = useState<{
-    coordinates: [number, number];
-    name: string;
-    city: string;
-    country: string;
-  } | null>(null);
-
+  const popupRef = useRef<maplibregl.Popup | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
   const { filteredNetworks, searchRadius, isLoading, userLat, userLng } =
@@ -55,6 +50,12 @@ export const NetworkListMap: React.FC<Props> = ({
     if (!map) return;
 
     let hoveredId: string | number | null = null;
+
+    popupRef.current = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: 15,
+    });
 
     map.on('mouseenter', 'network-markers', () => {
       map.getCanvas().style.cursor = 'pointer';
@@ -70,47 +71,50 @@ export const NetworkListMap: React.FC<Props> = ({
         );
         hoveredId = null;
       }
-      setHoveredFeature(null);
+      popupRef.current?.remove();
     });
 
     map.on('mousemove', 'network-markers', (e: MapLayerMouseEvent) => {
-      if (e.features && e.features.length > 0) {
-        const feature = e.features[0];
+      if (!e.features?.[0]) return;
 
-        if (hoveredId !== null && hoveredId !== feature.id) {
-          map.setFeatureState(
-            { source: 'networks', id: hoveredId },
-            { hover: false }
-          );
-        }
+      const feature = e.features[0];
 
-        const featureId = feature.id;
-        if (featureId !== undefined) {
-          hoveredId = featureId;
+      if (hoveredId !== null && hoveredId !== feature.id) {
+        map.setFeatureState(
+          { source: 'networks', id: hoveredId },
+          { hover: false }
+        );
+      }
 
-          map.setFeatureState(
-            { source: 'networks', id: featureId },
-            { hover: true }
-          );
-        }
+      if (feature.id !== undefined) {
+        hoveredId = feature.id;
+        map.setFeatureState(
+          { source: 'networks', id: feature.id },
+          { hover: true }
+        );
+      }
 
-        setHoveredFeature({
-          coordinates: [e.lngLat.lng, e.lngLat.lat],
-          name: feature.properties?.name || '',
-          city: feature.properties?.city || '',
-          country: feature.properties?.country || '',
-        });
+      if (feature.geometry.type === 'Point' && popupRef.current) {
+        const html = `
+          <div class="p-2">
+            <h3 class="font-bold">${feature.properties?.name || ''}</h3>
+            <p class="text-sm">
+              ${feature.properties?.city || ''}, ${feature.properties?.country || ''}
+            </p>
+          </div>
+        `;
+
+        popupRef.current
+          .setLngLat(feature.geometry.coordinates as [number, number])
+          .setHTML(html)
+          .addTo(map);
       }
     });
 
     map.on('click', 'network-markers', (e: MapLayerMouseEvent) => {
-      if (e.features && e.features.length > 0) {
-        const feature = e.features[0];
-        const networkId = feature.properties?.id;
-
-        if (networkId) {
-          router.push(`/networks/${networkId}`);
-        }
+      const networkId = e.features?.[0]?.properties?.id;
+      if (networkId) {
+        router.push(`/networks/${networkId}`);
       }
     });
 
@@ -160,6 +164,12 @@ export const NetworkListMap: React.FC<Props> = ({
     initialZoom,
   ]);
 
+  useEffect(() => {
+    return () => {
+      popupRef.current?.remove();
+    };
+  }, []);
+
   return (
     <div className="relative w-full h-full">
       <Map
@@ -202,30 +212,13 @@ export const NetworkListMap: React.FC<Props> = ({
                 'circle-stroke-color': [
                   'case',
                   ['boolean', ['feature-state', 'hover'], false],
-                  'rgba(243, 123, 68, 1)', // Color when hovered
-                  'rgba(243, 123, 68, 0.7)', // Default color
+                  'rgba(243, 123, 68, 1)',
+                  'rgba(243, 123, 68, 0.7)',
                 ],
                 'circle-opacity': 1,
               }}
             />
           </Source>
-        )}
-
-        {hoveredFeature && (
-          <Popup
-            longitude={hoveredFeature.coordinates[0]}
-            latitude={hoveredFeature.coordinates[1]}
-            closeButton={false}
-            closeOnClick={false}
-            offset={15}
-          >
-            <div className="p-2">
-              <h3 className="font-bold">{hoveredFeature.name}</h3>
-              <p className="text-sm">
-                {hoveredFeature.city}, {hoveredFeature.country}
-              </p>
-            </div>
-          </Popup>
         )}
 
         {isMapReady && userLat && userLng && (
