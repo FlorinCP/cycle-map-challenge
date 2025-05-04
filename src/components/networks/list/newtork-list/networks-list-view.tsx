@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from '../../../../../public/cycle-map-logo.svg';
 import CountryFilter from '../country-filter';
 import NetworkSearchInput from '../network-search-input';
 import Image from 'next/image';
@@ -9,7 +8,13 @@ import PaginatedNetworkList from '@/components/networks/list/newtork-list/pagina
 export default function NetworksListView() {
   return (
     <div className="p-10 pt-0 flex flex-col w-full max-h-screen overflow-y-auto bg-white">
-      <Image src={logo} alt={'CycleMapLogo'} className={'pt-10'} />
+      <Image
+        width={135}
+        height={30}
+        src={'./cycle-map-logo.svg'}
+        alt={'CycleMapLogo'}
+        className={'pt-10'}
+      />
       <div className="pt-6 inline-flex flex-col justify-start items-start gap-4">
         <div className="justify-start text-primary text-3xl font-semibold leading-10">
           Discover bike networks

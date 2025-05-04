@@ -70,7 +70,7 @@ export function PaginationNav({
             aria-disabled={!showPrevious}
             tabIndex={showPrevious ? undefined : -1}
             className={cn(
-              'cursor-pointer',
+              'cursor-pointer text-primary font-semibold',
               !showPrevious && 'pointer-events-none opacity-50',
               variant === 'secondary' && 'text-white'
             )}
@@ -114,7 +114,7 @@ export function PaginationNav({
             aria-disabled={!showNext}
             tabIndex={showNext ? undefined : -1}
             className={cn(
-              'cursor-pointer font-semibold',
+              'cursor-pointer font-semibold text-primary',
               !showNext && 'pointer-events-none opacity-50',
               variant === 'secondary' && 'text-white'
             )}
