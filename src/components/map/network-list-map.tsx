@@ -1,26 +1,17 @@
 'use client';
 
 import { Map, type MapRef, Layer, Source, Popup } from '@vis.gl/react-maplibre';
-import React, {
-  useRef,
-  useMemo,
-  useCallback,
-  useState,
-  useEffect,
-} from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { filterNetworks } from '@/api/utils';
-import { useListNetworksQuery } from '@/api';
 import { NearMeButton } from '@/components/near-me-feature/near-me-button';
-import { SEARCH_PARAMS } from '@/types/search-params';
-import { findNetworksProgressively } from '@/lib/location-utils';
 import { useGeojsonData } from '@/hooks/map/use-geo-json-data';
 import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
 import { useMapBounds } from '@/hooks/map/use-map-bounds';
 import { Spinner } from '@/components/ui/spinner';
 import { SearchRadiusIndicator } from '@/components/near-me-feature/search-radius-indicator';
 import { UserLocationMarker } from '@/components/near-me-feature/user-location-marker';
+import { useNetworkListFiltering } from '@/hooks/use-network-list-filtering';
 
 interface Props {
   initialLongitude?: number;
@@ -43,12 +34,11 @@ interface HoveredFeature {
   country: string;
 }
 
-export const NetworksMap: React.FC<Props> = ({
+export const NetworkListMap: React.FC<Props> = ({
   initialLatitude = DefaultMapInitialState.latitude,
   initialLongitude = DefaultMapInitialState.longitude,
   initialZoom = DefaultMapInitialState.zoom,
 }) => {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(
@@ -57,48 +47,8 @@ export const NetworksMap: React.FC<Props> = ({
 
   const [isMapReady, setIsMapReady] = useState(false);
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
-
-  const countryCode = searchParams.get(SEARCH_PARAMS.COUNTRY);
-  const searchTerm = searchParams.get(SEARCH_PARAMS.SEARCH);
-  const userLat = searchParams.get(SEARCH_PARAMS.LAT);
-  const userLng = searchParams.get(SEARCH_PARAMS.LNG);
-
-  const { data: allNetworks, isLoading: isLoadingNetworks } =
-    useListNetworksQuery();
-
-  const { filteredNetworks, searchRadius } = useMemo(() => {
-    if (!allNetworks || isLoadingNetworks) {
-      return { filteredNetworks: [], searchRadius: 0 };
-    }
-
-    if (userLat && userLng) {
-      const result = findNetworksProgressively(
-        allNetworks,
-        parseFloat(userLat),
-        parseFloat(userLng),
-        countryCode,
-        searchTerm,
-        [10, 50, 100, 200]
-      );
-      return {
-        filteredNetworks: result.networks,
-        searchRadius: result.searchRadius,
-      };
-    }
-
-    return {
-      filteredNetworks: filterNetworks(allNetworks, countryCode, searchTerm),
-      searchRadius: 0,
-    };
-  }, [
-    allNetworks,
-    isLoadingNetworks,
-    countryCode,
-    searchTerm,
-    userLat,
-    userLng,
-  ]);
-
+  const { filteredNetworks, searchRadius, isLoading, userLat, userLng } =
+    useNetworkListFiltering();
   const geojsonData = useGeojsonData(filteredNetworks);
   const mapZoomConfig = useMapZoomConfig(searchRadius, filteredNetworks.length);
   const mapBounds = useMapBounds(filteredNetworks, userLat, userLng);
@@ -255,7 +205,7 @@ export const NetworksMap: React.FC<Props> = ({
         )}
       </Map>
 
-      {isLoadingNetworks && (
+      {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50">
           <Spinner />
         </div>
@@ -264,6 +214,6 @@ export const NetworksMap: React.FC<Props> = ({
   );
 };
 
-NetworksMap.displayName = 'NetworksMap';
+NetworkListMap.displayName = 'NetworkListMap';
 
-export default NetworksMap;
+export default NetworkListMap;
