@@ -7,7 +7,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
 import { NearMeButton } from '@/components/near-me-feature/near-me-button';
-import { useGeojsonData } from '@/hooks/map/use-geo-json-data';
+import { useNetworkListGeoJsonData } from '@/hooks/map/use-network-list-geo-json-data';
 import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
 import { useMapBounds } from '@/hooks/map/use-map-bounds';
 import { Spinner } from '@/components/ui/spinner';
@@ -41,7 +41,7 @@ export const NetworkListMap: React.FC<Props> = ({
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
   const { filteredNetworks, searchRadius, isLoading, userLat, userLng } =
     useNetworkListFiltering();
-  const geojsonData = useGeojsonData(filteredNetworks);
+  const geojsonData = useNetworkListGeoJsonData(filteredNetworks);
   const mapZoomConfig = useMapZoomConfig(searchRadius, filteredNetworks.length);
   const mapBounds = useMapBounds(filteredNetworks, userLat, userLng);
 

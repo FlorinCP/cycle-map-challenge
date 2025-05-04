@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { NetworkSummary } from '@/types/city-bikes';
 
-export function useGeojsonData(filteredNetworks: NetworkSummary[]) {
+export function useNetworkListGeoJsonData(filteredNetworks: NetworkSummary[]) {
   return useMemo(() => {
     return {
       type: 'FeatureCollection' as const,
