@@ -141,7 +141,6 @@ The other Bonus functionality, **"Near me"** was very fun to do:
 
 The Pagination used is based on the **Shadcn** one. However, it doesn't do a full reload on next, it's working as a client pagination since a full reload benefits the server components, in my case it would trigger unnecessarily refreshes.
 
-
 ### PageMapLayout
 
 ```tsx
@@ -166,6 +165,7 @@ Reference: [Vaul Snap Points](https://vaul.emilkowal.ski/snap-points)
 The Map component responsible for displaying the network list. All networks currently render in a single Layer component, but with more data, clustering would improve performance.
 
 Alternative strategies could include:
+
 - Showing only closest networks based on user location
 - Using IP geolocation services for initial viewport selection
 
@@ -176,10 +176,10 @@ const map = mapRef.current?.getMap();
 ```
 
 The component would benefit from:
+
 - Better separation into custom hooks
 - Enhanced loading states that account for map asset rendering
 - More granular error handling
-
 
 # Detail View Features
 
@@ -228,9 +228,18 @@ The hover/click interactions for markers need refinement.
 
 I considered storing `selectedStationId` in the URL but opted for state lifting to avoid bloating the browser history during frequent hover interactions.
 
-
-# Unfilled Points
+# Unfilled Points / TODOs
 
 I couldn't implement the animation of the left layout column, specifically the slide in-out transition for NetworkList and NetworkDetail components on route changes.
 The hover/click over the Markers in the `NetworkDetailMap` are not as fluid as desired.
+The Tailwind config is not entirely aligned with the best practices
 
+# Opinions, Challenges
+
+Overall, I loved the challenge. Even though its purpose was to showcase my skills and knowledge, I learned a lot of new things throughout the process.
+
+Besides the problems encountered with software versions, the trickiest aspects were:
+
+- Choosing the proper layout architecture
+- Designing the data flow
+- Optimizing the project to handle the number of networks efficiently

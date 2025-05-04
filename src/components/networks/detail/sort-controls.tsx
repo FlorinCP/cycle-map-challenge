@@ -2,7 +2,11 @@
 
 import { ArrowUp, ArrowDown, ArrowDownUp } from 'lucide-react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import { SEARCH_PARAMS, SortDirection, StationSortKey } from '@/types/search-params';
+import {
+  SEARCH_PARAMS,
+  SortDirection,
+  StationSortKey,
+} from '@/types/search-params';
 
 interface SortControlsProps {
   sortKeyParam?: string;

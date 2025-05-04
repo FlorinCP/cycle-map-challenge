@@ -6,6 +6,13 @@ First, install dependencies:
     npm install
 ```
 
+Copy the following to .env.local
+
+```ts
+NEXT_PUBLIC_API_URL=https://api.citybik.es/v2
+NEXT_PUBLIC_MAP_STYLE=https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json
+```
+
 Then run the server:
 
 ```bash
