@@ -4,6 +4,7 @@ import { Map, type MapRef, Layer, Source, Popup } from '@vis.gl/react-maplibre';
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import type { MapLayerMouseEvent } from 'maplibre-gl';
 import { NearMeButton } from '@/components/near-me-feature/near-me-button';
 import { useGeojsonData } from '@/hooks/map/use-geo-json-data';
 import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
@@ -27,13 +28,6 @@ const DefaultMapInitialState = {
   bearing: 0,
 };
 
-interface HoveredFeature {
-  coordinates: [number, number];
-  name: string;
-  city: string;
-  country: string;
-}
-
 export const NetworkListMap: React.FC<Props> = ({
   initialLatitude = DefaultMapInitialState.latitude,
   initialLongitude = DefaultMapInitialState.longitude,
@@ -41,9 +35,12 @@ export const NetworkListMap: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
-  const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(
-    null
-  );
+  const [hoveredFeature, setHoveredFeature] = useState<{
+    coordinates: [number, number];
+    name: string;
+    city: string;
+    country: string;
+  } | null>(null);
 
   const [isMapReady, setIsMapReady] = useState(false);
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
@@ -53,8 +50,60 @@ export const NetworkListMap: React.FC<Props> = ({
   const mapZoomConfig = useMapZoomConfig(searchRadius, filteredNetworks.length);
   const mapBounds = useMapBounds(filteredNetworks, userLat, userLng);
 
-  const handleMarkerClick = useCallback(
-    (e: maplibregl.MapLayerMouseEvent) => {
+  const onMapLoad = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    let hoveredId: string | number | null = null;
+
+    map.on('mouseenter', 'network-markers', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.on('mouseleave', 'network-markers', () => {
+      map.getCanvas().style.cursor = '';
+
+      if (hoveredId !== null) {
+        map.setFeatureState(
+          { source: 'networks', id: hoveredId },
+          { hover: false }
+        );
+        hoveredId = null;
+      }
+      setHoveredFeature(null);
+    });
+
+    map.on('mousemove', 'network-markers', (e: MapLayerMouseEvent) => {
+      if (e.features && e.features.length > 0) {
+        const feature = e.features[0];
+
+        if (hoveredId !== null && hoveredId !== feature.id) {
+          map.setFeatureState(
+            { source: 'networks', id: hoveredId },
+            { hover: false }
+          );
+        }
+
+        const featureId = feature.id;
+        if (featureId !== undefined) {
+          hoveredId = featureId;
+
+          map.setFeatureState(
+            { source: 'networks', id: featureId },
+            { hover: true }
+          );
+        }
+
+        setHoveredFeature({
+          coordinates: [e.lngLat.lng, e.lngLat.lat],
+          name: feature.properties?.name || '',
+          city: feature.properties?.city || '',
+          country: feature.properties?.country || '',
+        });
+      }
+    });
+
+    map.on('click', 'network-markers', (e: MapLayerMouseEvent) => {
       if (e.features && e.features.length > 0) {
         const feature = e.features[0];
         const networkId = feature.properties?.id;
@@ -63,27 +112,10 @@ export const NetworkListMap: React.FC<Props> = ({
           router.push(`/networks/${networkId}`);
         }
       }
-    },
-    [router]
-  );
+    });
 
-  const handleMouseEnter = useCallback((e: maplibregl.MapLayerMouseEvent) => {
-    if (e.features && e.features.length > 0) {
-      const feature = e.features[0];
-      const geometry = feature.geometry as GeoJSON.Point;
-
-      setHoveredFeature({
-        coordinates: geometry.coordinates as [number, number],
-        name: feature.properties?.name,
-        city: feature.properties?.city,
-        country: feature.properties?.country,
-      });
-    }
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setHoveredFeature(null);
-  }, []);
+    setIsMapReady(true);
+  }, [router]);
 
   useEffect(() => {
     if (!isMapReady || !mapRef.current) return;
@@ -128,10 +160,6 @@ export const NetworkListMap: React.FC<Props> = ({
     initialZoom,
   ]);
 
-  const onMapLoad = useCallback(() => {
-    setIsMapReady(true);
-  }, []);
-
   return (
     <div className="relative w-full h-full">
       <Map
@@ -147,25 +175,36 @@ export const NetworkListMap: React.FC<Props> = ({
         dragRotate={false}
         pitchWithRotate={false}
         touchZoomRotate={false}
-        interactiveLayerIds={['network-markers']}
-        onClick={handleMarkerClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
       >
-        <span className={'absolute top-8 left-8 z-10 flex items-center'}>
+        <span className="absolute top-8 left-8 z-10 flex items-center">
           <NearMeButton />
         </span>
 
         {geojsonData.features.length > 0 && (
-          <Source id="networks" type="geojson" data={geojsonData}>
+          <Source
+            id="networks"
+            type="geojson"
+            data={geojsonData}
+            generateId={true}
+          >
             <Layer
               id="network-markers"
               type="circle"
               paint={{
-                'circle-color': 'rgba(247, 169, 122, 1)',
+                'circle-color': [
+                  'case',
+                  ['boolean', ['feature-state', 'hover'], false],
+                  'rgb(255,255,255)',
+                  'rgba(247, 169, 122, 1)',
+                ],
                 'circle-radius': 6,
                 'circle-stroke-width': 2,
-                'circle-stroke-color': 'rgba(243, 123, 68, 1)',
+                'circle-stroke-color': [
+                  'case',
+                  ['boolean', ['feature-state', 'hover'], false],
+                  'rgba(243, 123, 68, 1)', // Color when hovered
+                  'rgba(243, 123, 68, 0.7)', // Default color
+                ],
                 'circle-opacity': 1,
               }}
             />
@@ -206,7 +245,7 @@ export const NetworkListMap: React.FC<Props> = ({
       </Map>
 
       {isLoading && (
-        <div className="absolute bg-zinc-50 inset-0 flex items-center justify-center bg-white/50">
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-50">
           <Spinner />
         </div>
       )}
