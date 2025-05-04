@@ -19,14 +19,14 @@ interface PaginationNavProps {
   totalPages: number;
   pageSize: number;
   siblingCount?: number;
-  schema?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary';
 }
 
 export function PaginationNav({
   totalPages,
   pageSize,
   siblingCount = 1,
-  schema = 'primary',
+  variant = 'primary',
 }: PaginationNavProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -72,14 +72,19 @@ export function PaginationNav({
             className={cn(
               'cursor-pointer',
               !showPrevious && 'pointer-events-none opacity-50',
-              schema === 'secondary' && 'text-white'
+              variant === 'secondary' && 'text-white'
             )}
           />
         </PaginationItem>
 
         {paginationRange.map((pageNumber, index) => {
           if (pageNumber === DOTS) {
-            return <PaginationEllipsis key={DOTS + index} />;
+            return (
+              <PaginationEllipsis
+                className={cn(variant === 'secondary' && 'text-white')}
+                key={DOTS + index}
+              />
+            );
           }
 
           return (
@@ -90,8 +95,8 @@ export function PaginationNav({
                 className={cn(
                   'cursor-pointer text-accent-foreground border font-semibold',
                   currentPage === pageNumber && 'bg-accent',
-                  schema === 'secondary' && 'text-white border-none',
-                  schema === 'secondary' &&
+                  variant === 'secondary' && 'text-white border-none',
+                  variant === 'secondary' &&
                     currentPage === pageNumber &&
                     'text-torea-bay-900'
                 )}
@@ -111,7 +116,7 @@ export function PaginationNav({
             className={cn(
               'cursor-pointer font-semibold',
               !showNext && 'pointer-events-none opacity-50',
-              schema === 'secondary' && 'text-white'
+              variant === 'secondary' && 'text-white'
             )}
           />
         </PaginationItem>
