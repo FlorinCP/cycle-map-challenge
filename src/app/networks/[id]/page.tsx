@@ -24,7 +24,6 @@ export default function NetworkDetailPage({
         />
         <NetworkDetailMap
           networkId={id}
-          selectedStationId={selectedStationId}
           onSelectStation={setSelectedStationId}
         />
       </div>

@@ -11,7 +11,6 @@ import { useStationGeoJsonData } from '@/hooks/map/use-station-list-geo-json-dat
 
 interface Props {
   networkId: string;
-  selectedStationId: string | null;
   onSelectStation: (stationId: string | null) => void;
 }
 
@@ -25,7 +24,6 @@ const DefaultMapInitialState = {
 
 export const NetworkDetailMap: React.FC<Props> = ({
   networkId,
-  selectedStationId,
   onSelectStation,
 }) => {
   const mapRef = useRef<MapRef>(null);
@@ -47,6 +45,7 @@ export const NetworkDetailMap: React.FC<Props> = ({
       closeButton: false,
       closeOnClick: false,
       offset: 15,
+      className: 'animated-popup',
     });
 
     map.on('mouseenter', 'station-markers', (e: MapLayerMouseEvent) => {
@@ -92,6 +91,19 @@ export const NetworkDetailMap: React.FC<Props> = ({
           .setLngLat(feature.geometry.coordinates as [number, number])
           .setHTML(html)
           .addTo(map);
+
+        requestAnimationFrame(() => {
+          const popupElement = popupRef.current?.getElement();
+          if (popupElement) {
+            popupElement.style.opacity = '0';
+            popupElement.classList.add('popup-fade-enter');
+
+            requestAnimationFrame(() => {
+              popupElement.style.opacity = '1';
+              popupElement.classList.add('popup-fade-enter-active');
+            });
+          }
+        });
       }
     });
 
@@ -106,7 +118,16 @@ export const NetworkDetailMap: React.FC<Props> = ({
         hoveredId = null;
       }
       onSelectStation(null);
-      popupRef.current?.remove();
+
+      const popupElement = popupRef.current?.getElement();
+      if (popupElement) {
+        popupElement.style.opacity = '0';
+        setTimeout(() => {
+          popupRef.current?.remove();
+        }, 300);
+      } else {
+        popupRef.current?.remove();
+      }
     });
 
     map.on('click', 'station-markers', (e: MapLayerMouseEvent) => {
