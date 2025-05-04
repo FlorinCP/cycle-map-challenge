@@ -1,7 +1,6 @@
 'use client';
 
 import { Map, type MapRef, Layer, Source, Popup } from '@vis.gl/react-maplibre';
-import { LngLatBounds } from 'maplibre-gl';
 import React, {
   useRef,
   useMemo,
@@ -13,13 +12,15 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { filterNetworks } from '@/api/utils';
 import { useListNetworksQuery } from '@/api';
-import { NearMeButton } from '@/components/networks/list/near-me-button';
+import { NearMeButton } from '@/components/near-me-feature/near-me-button';
 import { SEARCH_PARAMS } from '@/types/search-params';
 import { findNetworksProgressively } from '@/lib/location-utils';
 import { useGeojsonData } from '@/hooks/map/use-geo-json-data';
 import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
 import { useMapBounds } from '@/hooks/map/use-map-bounds';
 import { Spinner } from '@/components/ui/spinner';
+import { SearchRadiusIndicator } from '@/components/near-me-feature/search-radius-indicator';
+import { UserLocationMarker } from '@/components/near-me-feature/user-location-marker';
 
 interface Props {
   initialLongitude?: number;
@@ -200,7 +201,6 @@ export const NetworksMap: React.FC<Props> = ({
         onClick={handleMarkerClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        cursor={hoveredFeature ? 'pointer' : 'auto'}
       >
         <span className={'absolute top-8 left-8 z-10 flex items-center'}>
           <NearMeButton />
@@ -238,15 +238,22 @@ export const NetworksMap: React.FC<Props> = ({
             </div>
           </Popup>
         )}
-      </Map>
 
-      {userLat && userLng && searchRadius > 0 && (
-        <div className="absolute top-8 right-8 z-10 bg-white px-3 py-2 rounded-lg shadow-md text-sm">
-          {searchRadius === -1
-            ? 'Showing all networks (no networks found nearby)'
-            : `Showing networks within ${searchRadius}km`}
-        </div>
-      )}
+        {isMapReady && userLat && userLng && (
+          <>
+            <UserLocationMarker
+              userLat={userLat}
+              userLng={userLng}
+              searchRadius={searchRadius}
+            />
+            <SearchRadiusIndicator
+              userLat={userLat}
+              userLng={userLng}
+              searchRadius={searchRadius}
+            />
+          </>
+        )}
+      </Map>
 
       {isLoadingNetworks && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50">
