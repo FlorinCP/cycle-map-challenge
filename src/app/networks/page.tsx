@@ -9,11 +9,7 @@ export default function NetworksPage() {
     <Suspense fallback={<LoadingScreen />}>
       <PageMapLayout>
         <NetworksListView />
-        <NetworkListMap
-          initialLatitude={45}
-          initialLongitude={10}
-          initialZoom={1.5}
-        />
+        <NetworkListMap />
       </PageMapLayout>
     </Suspense>
   );
