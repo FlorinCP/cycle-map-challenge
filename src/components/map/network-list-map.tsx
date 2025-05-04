@@ -14,26 +14,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { SearchRadiusIndicator } from '@/components/near-me-feature/search-radius-indicator';
 import { UserLocationMarker } from '@/components/near-me-feature/user-location-marker';
 import { useNetworkListFiltering } from '@/hooks/use-network-list-filtering';
+import { useMapState } from '@/hooks/map/use-map-dimesions';
 
-interface Props {
-  initialLongitude?: number;
-  initialLatitude?: number;
-  initialZoom?: number;
-}
-
-const DefaultMapInitialState = {
-  longitude: 10,
-  latitude: 45,
-  zoom: 1.5,
-  pitch: 0,
-  bearing: 0,
-};
-
-export const NetworkListMap: React.FC<Props> = ({
-  initialLatitude = DefaultMapInitialState.latitude,
-  initialLongitude = DefaultMapInitialState.longitude,
-  initialZoom = DefaultMapInitialState.zoom,
-}) => {
+export const NetworkListMap: React.FC = () => {
+  const mapState = useMapState();
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
@@ -144,8 +128,8 @@ export const NetworkListMap: React.FC<Props> = ({
         });
       } else {
         map.flyTo({
-          center: [initialLongitude, initialLatitude],
-          zoom: initialZoom,
+          center: [mapState.longitude, mapState.latitude],
+          zoom: mapState.zoom,
           duration: 1000,
           essential: true,
         });
@@ -156,12 +140,12 @@ export const NetworkListMap: React.FC<Props> = ({
   }, [
     isMapReady,
     mapBounds,
+    mapState.latitude,
+    mapState.longitude,
+    mapState.zoom,
     mapZoomConfig,
     userLat,
     userLng,
-    initialLatitude,
-    initialLongitude,
-    initialZoom,
   ]);
 
   useEffect(() => {
@@ -174,11 +158,7 @@ export const NetworkListMap: React.FC<Props> = ({
     <div className="relative w-full h-full">
       <Map
         ref={mapRef}
-        initialViewState={{
-          longitude: initialLongitude,
-          latitude: initialLatitude,
-          zoom: initialZoom,
-        }}
+        initialViewState={mapState}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
         onLoad={onMapLoad}

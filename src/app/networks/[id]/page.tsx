@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import NetworkDetailView from '@/components/networks/detail/network-detail-view';
 import NetworkDetailMap from '@/components/map/network-detail-map';
 import { LoadingScreen } from '@/components/ui/spinner';
+import { PageMapLayout } from '@/components/layouts/page-map-layout';
 
 export default function NetworkDetailPage({
   params,
@@ -17,7 +18,7 @@ export default function NetworkDetailPage({
 
   return (
     <Suspense fallback={<LoadingScreen />}>
-      <div className="grid grid-cols-1 md:grid-cols-[30%_70%] min-h-screen max-h-screen w-full">
+      <PageMapLayout>
         <NetworkDetailView
           networkId={id}
           selectedStationId={selectedStationId}
@@ -26,7 +27,7 @@ export default function NetworkDetailPage({
           networkId={id}
           onSelectStation={setSelectedStationId}
         />
-      </div>
+      </PageMapLayout>
     </Suspense>
   );
 }

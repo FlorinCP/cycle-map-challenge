@@ -31,14 +31,14 @@ export function NetworkItem({
             {location.city}, {location.country}
           </span>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#71717a]">
-            <Briefcase className="h-6 w-6 rounded bg-torea-bay-50 p-1 text-grenadier-400" />
-            <span className={'font-muted-foreground text-sm line-leading-7'}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-[#71717a] min-w-0">
+            <Briefcase className="h-6 w-6 rounded bg-torea-bay-50 p-1 text-grenadier-400 flex-shrink-0" />
+            <span className="font-muted-foreground text-sm line-leading-7 truncate">
               {companies.slice(0, 2).join(', ')}
             </span>
             {companies.length > 2 && (
-              <span className="inline-flex items-center justify-center h-6 w-6 rounded border border-[#f0581f] text-[#f0581f] text-xs">
+              <span className="inline-flex items-center justify-center h-6 w-6 rounded border border-[#f0581f] text-[#f0581f] text-xs flex-shrink-0">
                 +{companies.length - 2}
               </span>
             )}

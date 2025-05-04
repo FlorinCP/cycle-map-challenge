@@ -129,7 +129,7 @@ export default function NetworkDetailView({
 
           {totalPages > 1 && (
             <PaginationNav
-              schema={'secondary'}
+              variant={'secondary'}
               totalPages={totalPages}
               pageSize={STATION_ITEMS_PER_PAGE}
             />
