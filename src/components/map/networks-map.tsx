@@ -18,6 +18,8 @@ import { SEARCH_PARAMS } from '@/types/search-params';
 import { findNetworksProgressively } from '@/lib/location-utils';
 import { useGeojsonData } from '@/hooks/map/use-geo-json-data';
 import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
+import { useMapBounds } from '@/hooks/map/use-map-bounds';
+import { Spinner } from '@/components/ui/spinner';
 
 interface Props {
   initialLongitude?: number;
@@ -98,22 +100,7 @@ export const NetworksMap: React.FC<Props> = ({
 
   const geojsonData = useGeojsonData(filteredNetworks);
   const mapZoomConfig = useMapZoomConfig(searchRadius, filteredNetworks.length);
-
-  const mapBounds = useMemo(() => {
-    if (filteredNetworks.length === 0) return null;
-
-    const bounds = new LngLatBounds();
-
-    if (userLat && userLng) {
-      bounds.extend([parseFloat(userLng), parseFloat(userLat)]);
-    }
-
-    filteredNetworks.forEach(network => {
-      bounds.extend([network.location.longitude, network.location.latitude]);
-    });
-
-    return bounds.isEmpty() ? null : bounds;
-  }, [filteredNetworks, userLat, userLng]);
+  const mapBounds = useMapBounds(filteredNetworks, userLat, userLng);
 
   const handleMarkerClick = useCallback(
     (e: maplibregl.MapLayerMouseEvent) => {
@@ -263,7 +250,7 @@ export const NetworksMap: React.FC<Props> = ({
 
       {isLoadingNetworks && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50">
-          <div className="loader">Loading...</div>
+          <Spinner />
         </div>
       )}
     </div>
