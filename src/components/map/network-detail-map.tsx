@@ -1,7 +1,13 @@
 'use client';
 
-import { Map, type MapRef, Layer, Source } from '@vis.gl/react-maplibre';
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+import {
+  Map,
+  type MapRef,
+  Layer,
+  Source,
+  LngLatBoundsLike,
+} from '@vis.gl/react-maplibre';
+import React, { useRef, useCallback, useEffect, useMemo } from 'react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
@@ -28,7 +34,6 @@ export const NetworkDetailMap: React.FC<Props> = ({
 }) => {
   const mapRef = useRef<MapRef>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
-  const [isMapReady, setIsMapReady] = useState(false);
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
 
   const { data: networkDetail, isLoading } =
@@ -136,53 +141,48 @@ export const NetworkDetailMap: React.FC<Props> = ({
         onSelectStation(stationId);
       }
     });
-
-    setIsMapReady(true);
   }, [onSelectStation]);
 
-  useEffect(() => {
-    if (!isMapReady || !mapRef.current || !networkDetail?.stations) return;
+  const bounds: LngLatBoundsLike | undefined = useMemo(() => {
+    if (!networkDetail?.stations?.length) return undefined;
 
-    const map = mapRef.current.getMap();
-    if (!map) return;
+    const bounds = new maplibregl.LngLatBounds();
+    networkDetail.stations.forEach(station => {
+      bounds.extend([station.longitude, station.latitude]);
+    });
 
-    const timeoutId = setTimeout(() => {
-      if (networkDetail.stations.length > 0) {
-        const bounds = new maplibregl.LngLatBounds();
+    if (bounds.isEmpty()) return undefined;
 
-        networkDetail.stations.forEach(station => {
-          bounds.extend([station.longitude, station.latitude]);
-        });
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    return [sw.lng, sw.lat, ne.lng, ne.lat] as [number, number, number, number];
+  }, [networkDetail?.stations]);
 
-        if (!bounds.isEmpty()) {
-          map.fitBounds(bounds, {
-            padding: 60,
-            maxZoom: 16,
-            duration: 1000,
-            essential: true,
-          });
+  const initialViewState = bounds
+    ? { bounds, fitBoundsOptions: { padding: 60, maxZoom: 16 } }
+    : networkDetail?.location
+      ? {
+          longitude: networkDetail.location.longitude,
+          latitude: networkDetail.location.latitude,
+          zoom: 12,
+          pitch: 0,
+          bearing: 0,
         }
-      } else if (networkDetail?.location) {
-        map.flyTo({
-          center: [
-            networkDetail.location.longitude,
-            networkDetail.location.latitude,
-          ],
-          zoom: DefaultMapInitialState.zoom,
-          duration: 1000,
-          essential: true,
-        });
-      }
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [isMapReady, networkDetail]);
+      : DefaultMapInitialState;
 
   useEffect(() => {
     return () => {
       popupRef.current?.remove();
     };
   }, []);
+
+  if (isLoading || !networkDetail?.location) {
+    return (
+      <div className="relative w-full h-full flex items-center justify-center bg-zinc-50">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full">
@@ -194,6 +194,7 @@ export const NetworkDetailMap: React.FC<Props> = ({
         dragRotate={false}
         pitchWithRotate={false}
         touchZoomRotate={false}
+        initialViewState={initialViewState}
       >
         {geojsonData.features.length > 0 && (
           <Source
@@ -217,12 +218,6 @@ export const NetworkDetailMap: React.FC<Props> = ({
           </Source>
         )}
       </Map>
-
-      {(isLoading || !networkDetail?.location) && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-50">
-          <Spinner />
-        </div>
-      )}
     </div>
   );
 };
