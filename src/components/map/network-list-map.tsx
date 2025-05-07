@@ -11,12 +11,13 @@ import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
 import { useMapBounds } from '@/hooks/map/use-map-bounds';
 import { SearchRadiusIndicator } from '@/components/near-me-feature/search-radius-indicator';
 import { UserLocationMarker } from '@/components/near-me-feature/user-location-marker';
-import { useNetworkListFiltering } from '@/hooks/use-network-list-filtering';
 import { useMapState } from '@/hooks/map/use-map-dimesions';
 import { ZoomControls } from '@/components/map/zoom-controls';
 import { NetworkSummary } from '@/types/city-bikes';
+import { SEARCH_PARAMS } from '@/types/search-params';
+import { ProgressiveSearchResult } from '@/lib/location-utils';
 
-function createGeoJsonData(networks: NetworkSummary[]) {
+function createNetworksGeoJsonData(networks: NetworkSummary[]) {
   return {
     type: 'FeatureCollection' as const,
     features: networks.map(network => ({
@@ -36,21 +37,26 @@ function createGeoJsonData(networks: NetworkSummary[]) {
 }
 
 interface Props {
-  filteredNetworks: NetworkSummary[];
+  result: ProgressiveSearchResult;
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export const NetworkListMap: React.FC<Props> = ({ filteredNetworks }) => {
-  const geoJsonData = createGeoJsonData(filteredNetworks);
+export const NetworkListMap: React.FC<Props> = ({ result, searchParams }) => {
+  const userLat = searchParams?.[SEARCH_PARAMS.LAT] as string;
+  const userLng = searchParams?.[SEARCH_PARAMS.LNG] as string;
+
+  const geoJsonData = createNetworksGeoJsonData(result.networks);
   const mapState = useMapState();
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
-  const { searchRadius, userLat, userLng } =
-    useNetworkListFiltering(filteredNetworks);
-  const mapZoomConfig = useMapZoomConfig(searchRadius, filteredNetworks.length);
-  const mapBounds = useMapBounds(filteredNetworks, userLat, userLng);
+  const mapZoomConfig = useMapZoomConfig(
+    result.searchRadius,
+    result.networks.length
+  );
+  const mapBounds = useMapBounds(result.networks, userLat, userLng);
 
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -228,12 +234,12 @@ export const NetworkListMap: React.FC<Props> = ({ filteredNetworks }) => {
             <UserLocationMarker
               userLat={userLat}
               userLng={userLng}
-              searchRadius={searchRadius}
+              searchRadius={result.searchRadius}
             />
             <SearchRadiusIndicator
               userLat={userLat}
               userLng={userLng}
-              searchRadius={searchRadius}
+              searchRadius={result.searchRadius}
             />
           </>
         )}

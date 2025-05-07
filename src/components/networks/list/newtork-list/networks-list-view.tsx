@@ -4,16 +4,30 @@ import NetworkSearchInput from '../network-search-input';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import PaginatedNetworkList from '@/components/networks/list/newtork-list/paginated-network-list';
+import { NetworkSummary } from '@/types/city-bikes';
+import { calculateTotalPages, paginateItems } from '@/api';
+import { NETWORK_ITEMS_PER_PAGE } from '@/types/search-params';
 
 interface NetworksListViewProps {
-  networksToDisplay: any[];
-  totalPages: number;
+  networks: NetworkSummary[];
+  page: number;
 }
 
 export default function NetworksListView({
-  networksToDisplay,
-  totalPages,
+  networks,
+  page,
 }: NetworksListViewProps) {
+  const paginatedNetworks = paginateItems(
+    networks,
+    page,
+    NETWORK_ITEMS_PER_PAGE
+  );
+
+  const totalPages = calculateTotalPages(
+    networks.length,
+    NETWORK_ITEMS_PER_PAGE
+  );
+
   return (
     <div className="p-10 pt-0 flex flex-col w-full max-h-screen overflow-y-auto bg-white">
       <Image
@@ -48,7 +62,7 @@ export default function NetworksListView({
         <CountryFilter />
       </div>
       <PaginatedNetworkList
-        networksToDisplay={networksToDisplay}
+        networksToDisplay={paginatedNetworks}
         totalPages={totalPages}
       />
       <div className="bottom-0 absolute w-full h-[120px] bg-gradient-to-b from-white/0 to-white pointer-events-none" />

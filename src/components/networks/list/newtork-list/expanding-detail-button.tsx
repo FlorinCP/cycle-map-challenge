@@ -13,6 +13,7 @@ export function ExpandingDetailButton({
 }: ExpandingDetailButtonProps) {
   return (
     <Link
+      prefetch={true}
       href={{
         pathname: `/networks/${id}`,
       }}
