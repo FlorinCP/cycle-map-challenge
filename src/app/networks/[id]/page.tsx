@@ -14,6 +14,7 @@ import {
   SortDirection,
   StationSortKey,
 } from '@/types/search-params';
+import MotionLayout from '@/components/layouts/motion-layout';
 
 export default async function NetworkDetailPage({
   params,
@@ -40,13 +41,15 @@ export default async function NetworkDetailPage({
   return (
     <Suspense fallback={<LoadingScreen />}>
       <PageMapLayout>
-        <NetworkDetailView
-          totalPages={processedStations().totalPages}
-          currentPage={currentPage}
-          stations={processedStations().paginated}
-          networkDetail={networkDetail}
-          stationId={stationId}
-        />
+        <MotionLayout>
+          <NetworkDetailView
+            totalPages={processedStations().totalPages}
+            currentPage={currentPage}
+            stations={processedStations().paginated}
+            networkDetail={networkDetail}
+            stationId={stationId}
+          />
+        </MotionLayout>
         <NetworkDetailMap networkDetail={networkDetail} />
       </PageMapLayout>
     </Suspense>

@@ -7,6 +7,7 @@ import { SEARCH_PARAMS } from '@/types/search-params';
 import { NetworkSummary } from '@/types/city-bikes';
 import { networksApi } from '@/api';
 import { findNetworksProgressively } from '@/lib/location-utils';
+import MotionLayout from '@/components/layouts/motion-layout';
 
 export default async function NetworksPage({
   searchParams,
@@ -42,7 +43,9 @@ export default async function NetworksPage({
   return (
     <Suspense fallback={<LoadingScreen />}>
       <PageMapLayout>
-        <NetworksListView networks={result.networks} page={page} />
+        <MotionLayout>
+          <NetworksListView networks={result.networks} page={page} />
+        </MotionLayout>
         <Suspense
           fallback={
             <div className={'flex items-center justify-center h-full w-full'}>
