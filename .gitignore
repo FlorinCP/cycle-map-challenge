@@ -3,3 +3,5 @@
 /.next
 .env.local
 *.local
+public/sw.js
+public/workbox-f52fd911.js

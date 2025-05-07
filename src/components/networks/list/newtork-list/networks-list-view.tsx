@@ -5,7 +5,15 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import PaginatedNetworkList from '@/components/networks/list/newtork-list/paginated-network-list';
 
-export default function NetworksListView() {
+interface NetworksListViewProps {
+  networksToDisplay: any[];
+  totalPages: number;
+}
+
+export default function NetworksListView({
+  networksToDisplay,
+  totalPages,
+}: NetworksListViewProps) {
   return (
     <div className="p-10 pt-0 flex flex-col w-full max-h-screen overflow-y-auto bg-white">
       <Image
@@ -39,7 +47,10 @@ export default function NetworksListView() {
         <NetworkSearchInput />
         <CountryFilter />
       </div>
-      <PaginatedNetworkList />
+      <PaginatedNetworkList
+        networksToDisplay={networksToDisplay}
+        totalPages={totalPages}
+      />
       <div className="bottom-0 absolute w-full h-[120px] bg-gradient-to-b from-white/0 to-white pointer-events-none" />
     </div>
   );

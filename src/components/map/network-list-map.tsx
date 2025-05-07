@@ -7,7 +7,6 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
 import { NearMeButton } from '@/components/near-me-feature/near-me-button';
-import { useNetworkListGeoJsonData } from '@/hooks/map/use-network-list-geo-json-data';
 import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
 import { useMapBounds } from '@/hooks/map/use-map-bounds';
 import { Spinner } from '@/components/ui/spinner';
@@ -17,7 +16,11 @@ import { useNetworkListFiltering } from '@/hooks/use-network-list-filtering';
 import { useMapState } from '@/hooks/map/use-map-dimesions';
 import { ZoomControls } from '@/components/map/zoom-controls';
 
-export const NetworkListMap: React.FC = () => {
+interface Props {
+  geoJsonData: any;
+}
+
+export const NetworkListMap: React.FC<Props> = ({ geoJsonData }) => {
   const mapState = useMapState();
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
@@ -26,7 +29,6 @@ export const NetworkListMap: React.FC = () => {
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
   const { filteredNetworks, searchRadius, isLoading, userLat, userLng } =
     useNetworkListFiltering();
-  const geojsonData = useNetworkListGeoJsonData(filteredNetworks);
   const mapZoomConfig = useMapZoomConfig(searchRadius, filteredNetworks.length);
   const mapBounds = useMapBounds(filteredNetworks, userLat, userLng);
 
@@ -170,11 +172,11 @@ export const NetworkListMap: React.FC = () => {
       >
         <NearMeButton />
         <ZoomControls mapRef={mapRef} />
-        {geojsonData.features.length > 0 && (
+        {geoJsonData.features.length > 0 && (
           <Source
             id="networks"
             type="geojson"
-            data={geojsonData}
+            data={geoJsonData}
             generateId={true}
           >
             <Layer
