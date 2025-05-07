@@ -1,7 +1,7 @@
 import NetworksListView from '@/components/networks/list/newtork-list/networks-list-view';
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import NetworkListMap from '@/components/map/network-list-map';
-import { LoadingScreen } from '@/components/ui/spinner';
+import { LoadingScreen, Spinner } from '@/components/ui/spinner';
 import { PageMapLayout } from '@/components/layouts/page-map-layout';
 import { SEARCH_PARAMS } from '@/types/search-params';
 import { NetworkSummary } from '@/types/city-bikes';
@@ -43,7 +43,15 @@ export default async function NetworksPage({
     <Suspense fallback={<LoadingScreen />}>
       <PageMapLayout>
         <NetworksListView networks={result.networks} page={page} />
-        <NetworkListMap result={result} searchParams={searchParams} />
+        <Suspense
+          fallback={
+            <div className={'flex items-center justify-center h-full w-full'}>
+              <Spinner className={'w-6 h-6'} />
+            </div>
+          }
+        >
+          <NetworkListMap result={result} searchParams={searchParams} />
+        </Suspense>
       </PageMapLayout>
     </Suspense>
   );

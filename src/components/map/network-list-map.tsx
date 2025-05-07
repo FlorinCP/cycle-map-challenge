@@ -1,7 +1,7 @@
 'use client';
 
 import { Map, type MapRef, Layer, Source } from '@vis.gl/react-maplibre';
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
@@ -16,6 +16,8 @@ import { ZoomControls } from '@/components/map/zoom-controls';
 import { NetworkSummary } from '@/types/city-bikes';
 import { SEARCH_PARAMS } from '@/types/search-params';
 import { ProgressiveSearchResult } from '@/lib/location-utils';
+import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
 
 function createNetworksGeoJsonData(networks: NetworkSummary[]) {
   return {
@@ -50,7 +52,6 @@ export const NetworkListMap: React.FC<Props> = ({ result, searchParams }) => {
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
-  const [isMapReady, setIsMapReady] = useState(false);
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
   const mapZoomConfig = useMapZoomConfig(
     result.searchRadius,
@@ -130,12 +131,10 @@ export const NetworkListMap: React.FC<Props> = ({ result, searchParams }) => {
         router.push(`/networks/${networkId}`);
       }
     });
-
-    setIsMapReady(true);
   }, [router]);
 
   useEffect(() => {
-    if (!isMapReady || !mapRef.current) return;
+    if (!mapRef.current) return;
 
     const map = mapRef.current.getMap();
     if (!map) return;
@@ -167,7 +166,6 @@ export const NetworkListMap: React.FC<Props> = ({ result, searchParams }) => {
 
     return () => clearTimeout(timeoutId);
   }, [
-    isMapReady,
     mapBounds,
     mapState.latitude,
     mapState.longitude,
@@ -184,7 +182,22 @@ export const NetworkListMap: React.FC<Props> = ({ result, searchParams }) => {
   }, []);
 
   return (
-    <div className="relative w-full h-full">
+    <div
+      className={cn(
+        'relative w-full h-full',
+        !!(mapRef.current && mapState.zoom) && 'animate-fade-in'
+      )}
+    >
+      {!mapRef.current && (
+        <div
+          className={
+            'absolute top-0 left-0 flex items-center justify-center h-full w-full bg-zinc-50'
+          }
+        >
+          <Spinner className={'w-6 h-6'} />
+        </div>
+      )}
+
       <Map
         ref={mapRef}
         initialViewState={mapState}
@@ -229,7 +242,7 @@ export const NetworkListMap: React.FC<Props> = ({ result, searchParams }) => {
           </Source>
         )}
 
-        {isMapReady && userLat && userLng && (
+        {mapRef.current && userLat && userLng && (
           <>
             <UserLocationMarker
               userLat={userLat}
