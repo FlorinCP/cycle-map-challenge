@@ -4,6 +4,9 @@ export enum SEARCH_PARAMS {
   PAGE = 'page',
   LAT = 'lat',
   LNG = 'lng',
+  STATION_ID = 'station_id',
+  SORT_BY = 'sortBy',
+  SORT_DIRECTION = 'sortDir',
 }
 
 export type StationSortKey = 'free_bikes' | 'empty_slots';

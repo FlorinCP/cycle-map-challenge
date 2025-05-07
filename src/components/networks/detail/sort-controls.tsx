@@ -8,27 +8,22 @@ import {
   StationSortKey,
 } from '@/types/search-params';
 
-interface SortControlsProps {
-  sortKeyParam?: string;
-  sortDirectionParam?: string;
-}
-
 const SORT_OPTIONS: { label: string; key: StationSortKey }[] = [
   { label: 'Free Bikes', key: 'free_bikes' },
   { label: 'Empty Slots', key: 'empty_slots' },
 ];
 
-export default function SortControls({
-  sortKeyParam = 'sortBy',
-  sortDirectionParam = 'sortDir',
-}: SortControlsProps) {
+export default function SortControls() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const sortKey = searchParams.get(sortKeyParam) as StationSortKey | null;
+  const sortKey = searchParams.get(
+    SEARCH_PARAMS.SORT_BY
+  ) as StationSortKey | null;
   const sortDirection =
-    (searchParams.get(sortDirectionParam) as SortDirection | null) || 'desc';
+    (searchParams.get(SEARCH_PARAMS.SORT_DIRECTION) as SortDirection | null) ||
+    'desc';
 
   const handleSort = (key: StationSortKey) => {
     const params = new URLSearchParams(searchParams);
@@ -38,14 +33,14 @@ export default function SortControls({
       newDirection = 'asc';
     }
 
-    params.set(sortKeyParam, key);
-    params.set(sortDirectionParam, newDirection);
+    params.set(SEARCH_PARAMS.SORT_BY, key);
+    params.set(SEARCH_PARAMS.SORT_DIRECTION, newDirection);
 
     if (params.has(SEARCH_PARAMS.PAGE)) {
       params.set(SEARCH_PARAMS.PAGE, '1');
     }
 
-    router.push(`${pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}`);
   };
 
   const renderSortIcon = (key: StationSortKey) => {

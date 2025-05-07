@@ -11,10 +11,32 @@ import React, { useRef, useCallback, useEffect, useMemo } from 'react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
-import { useStationGeoJsonData } from '@/hooks/map/use-station-list-geo-json-data';
 import { ZoomControls } from '@/components/map/zoom-controls';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { NetworkDetail } from '@/types/city-bikes';
+import { NetworkDetail, type Station } from '@/types/city-bikes';
+import { SEARCH_PARAMS } from '@/types/search-params';
+
+const getStationsGeoJsonData = (stations: Station[]) => {
+  const features = stations?.map((station: Station) => ({
+    type: 'Feature' as const,
+    id: station.id,
+    geometry: {
+      type: 'Point' as const,
+      coordinates: [station.longitude, station.latitude] as [number, number],
+    },
+    properties: {
+      id: station.id,
+      name: station.name,
+      free_bikes: station.free_bikes,
+      empty_slots: station.empty_slots,
+    },
+  }));
+
+  return {
+    type: 'FeatureCollection' as const,
+    features: features || [],
+  };
+};
 
 interface Props {
   networkDetail: NetworkDetail;
@@ -34,20 +56,20 @@ export const NetworkDetailMap: React.FC<Props> = ({ networkDetail }) => {
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const geojsonData = useStationGeoJsonData(networkDetail?.stations);
+  const geojsonData = getStationsGeoJsonData(networkDetail?.stations);
 
   const onSelectStation = useCallback(
     (stationId: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
 
       if (stationId) {
-        params.set('stationId', stationId);
+        params.set(SEARCH_PARAMS.STATION_ID, stationId);
       } else {
-        params.delete('stationId');
+        params.delete(SEARCH_PARAMS.STATION_ID);
       }
 
       const newUrl = `${window.location.pathname}?${params.toString()}`;
-      router.replace(newUrl, { scroll: false });
+      router.replace(newUrl);
     },
     [router, searchParams]
   );
@@ -168,7 +190,6 @@ export const NetworkDetailMap: React.FC<Props> = ({ networkDetail }) => {
           { hover: true }
         );
 
-        // You might also want to fly to this station
         if (feature.geometry.type === 'Point') {
           map.flyTo({
             center: feature.geometry.coordinates as [number, number],
