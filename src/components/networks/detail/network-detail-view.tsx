@@ -1,12 +1,9 @@
-'use client';
-
 import React from 'react';
 import { ArrowLeft, BriefcaseBusiness, MapPin } from 'lucide-react';
 import StationListItem from '@/components/networks/detail/station-list-item';
 import StationListHeader from '@/components/networks/detail/station-list-header';
 import { cn } from '@/lib/utils';
-import { Station } from '@/types/city-bikes';
-import { usePaginatedNetworkDetal } from '@/hooks/use-paginated-network-detail';
+import { NetworkDetail, Station } from '@/types/city-bikes';
 import { PaginationNav } from '@/components/ui/pagination-nav';
 import { STATION_ITEMS_PER_PAGE } from '@/types/search-params';
 import Link from 'next/link';
@@ -20,17 +17,20 @@ const getCompanyDisplay = (
 };
 
 interface NetworkDetailDisplayProps {
-  networkId: string;
-  selectedStationId: string | null;
+  networkDetail: NetworkDetail;
+  stationId?: string | null;
+  currentPage: number;
+  totalPages: number;
+  stations: Station[];
 }
 
 export default function NetworkDetailView({
-  networkId,
-  selectedStationId,
+  networkDetail,
+  stationId,
+  currentPage,
+  totalPages,
+  stations,
 }: NetworkDetailDisplayProps) {
-  const { networkDetail, stations, currentPage, totalPages, isLoading } =
-    usePaginatedNetworkDetal(networkId);
-
   return (
     <div className="flex flex-col w-full max-h-screen min-h-screen overflow-y-auto bg-primary">
       <div
@@ -86,44 +86,29 @@ export default function NetworkDetailView({
           <div
             className={cn(
               'sticky top-0 z-10 transition-all duration-300 ease-in-out',
-              !!selectedStationId ? 'py-2' : 'py-0'
+              !!stationId ? 'py-2' : 'py-0'
             )}
           >
             <StationListHeader />
           </div>
 
           <div className={'pb-6'}>
-            {isLoading &&
-              Array.from({ length: 10 }).map((_, i) => (
+            {stations.length > 0 ? (
+              stations.map((station: Station) => (
                 <StationListItem
-                  key={i}
-                  station={{
-                    name: 'Loading',
-                    empty_slots: 0,
-                    free_bikes: 0,
-                  }}
+                  key={station.id}
+                  station={station}
+                  isHighlighted={station.id === stationId}
                 />
-              ))}
-            {!isLoading && (
-              <>
-                {stations.length > 0 ? (
-                  stations.map((station: Station) => (
-                    <StationListItem
-                      key={station.id}
-                      station={station}
-                      isHighlighted={station.id === selectedStationId}
-                    />
-                  ))
-                ) : networkDetail && networkDetail?.stations.length > 0 ? (
-                  <p className="text-center text-gray-500 mt-4">
-                    No stations on this page ({currentPage}).
-                  </p>
-                ) : (
-                  <p className="text-center text-gray-500 mt-4">
-                    No station data available for this network.
-                  </p>
-                )}
-              </>
+              ))
+            ) : networkDetail && networkDetail?.stations.length > 0 ? (
+              <p className="text-center text-gray-500 mt-4">
+                No stations on this page ({currentPage}).
+              </p>
+            ) : (
+              <p className="text-center text-gray-500 mt-4">
+                No station data available for this network.
+              </p>
             )}
           </div>
 

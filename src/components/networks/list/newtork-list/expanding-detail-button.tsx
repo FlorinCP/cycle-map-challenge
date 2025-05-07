@@ -1,9 +1,6 @@
-'use client';
-
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { usePrefetchNetworkDetail } from '@/api';
 
 interface ExpandingDetailButtonProps {
   id: string;
@@ -14,15 +11,11 @@ export function ExpandingDetailButton({
   id,
   className,
 }: ExpandingDetailButtonProps) {
-  const prefetchNetworkDetail = usePrefetchNetworkDetail();
-
   return (
     <Link
       href={{
         pathname: `/networks/${id}`,
       }}
-      onMouseEnter={() => prefetchNetworkDetail(id)}
-      onFocus={() => prefetchNetworkDetail(id)}
       className={cn(
         // --- Group Setup & Base Layout ---
         'inline-flex items-center justify-center',

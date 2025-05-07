@@ -9,26 +9,46 @@ import maplibregl from 'maplibre-gl';
 import { NearMeButton } from '@/components/near-me-feature/near-me-button';
 import { useMapZoomConfig } from '@/hooks/map/use-map-zoom-config';
 import { useMapBounds } from '@/hooks/map/use-map-bounds';
-import { Spinner } from '@/components/ui/spinner';
 import { SearchRadiusIndicator } from '@/components/near-me-feature/search-radius-indicator';
 import { UserLocationMarker } from '@/components/near-me-feature/user-location-marker';
 import { useNetworkListFiltering } from '@/hooks/use-network-list-filtering';
 import { useMapState } from '@/hooks/map/use-map-dimesions';
 import { ZoomControls } from '@/components/map/zoom-controls';
+import { NetworkSummary } from '@/types/city-bikes';
 
-interface Props {
-  geoJsonData: any;
+function createGeoJsonData(networks: NetworkSummary[]) {
+  return {
+    type: 'FeatureCollection' as const,
+    features: networks.map(network => ({
+      type: 'Feature' as const,
+      geometry: {
+        type: 'Point' as const,
+        coordinates: [network.location.longitude, network.location.latitude],
+      },
+      properties: {
+        id: network.id,
+        name: network.name,
+        city: network.location.city,
+        country: network.location.country,
+      },
+    })),
+  };
 }
 
-export const NetworkListMap: React.FC<Props> = ({ geoJsonData }) => {
+interface Props {
+  filteredNetworks: NetworkSummary[];
+}
+
+export const NetworkListMap: React.FC<Props> = ({ filteredNetworks }) => {
+  const geoJsonData = createGeoJsonData(filteredNetworks);
   const mapState = useMapState();
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
-  const { filteredNetworks, searchRadius, isLoading, userLat, userLng } =
-    useNetworkListFiltering();
+  const { searchRadius, userLat, userLng } =
+    useNetworkListFiltering(filteredNetworks);
   const mapZoomConfig = useMapZoomConfig(searchRadius, filteredNetworks.length);
   const mapBounds = useMapBounds(filteredNetworks, userLat, userLng);
 
@@ -218,12 +238,6 @@ export const NetworkListMap: React.FC<Props> = ({ geoJsonData }) => {
           </>
         )}
       </Map>
-
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-50">
-          <Spinner />
-        </div>
-      )}
     </div>
   );
 };

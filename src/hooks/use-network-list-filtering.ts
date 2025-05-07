@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useListNetworksQuery } from '@/api';
 import { filterNetworks } from '@/api/utils';
 import { findNetworksProgressively } from '@/lib/location-utils';
 import { SEARCH_PARAMS } from '@/types/search-params';
+import { NetworkSummary } from '@/types/city-bikes';
 
-export function useNetworkListFiltering() {
+export function useNetworkListFiltering(allNetworks: NetworkSummary[] | null) {
   const searchParams = useSearchParams();
 
   const countryCode = searchParams.get(SEARCH_PARAMS.COUNTRY);
@@ -13,10 +13,8 @@ export function useNetworkListFiltering() {
   const userLat = searchParams.get(SEARCH_PARAMS.LAT);
   const userLng = searchParams.get(SEARCH_PARAMS.LNG);
 
-  const { data: allNetworks, isLoading } = useListNetworksQuery();
-
   const { filteredNetworks, searchRadius } = useMemo(() => {
-    if (!allNetworks || isLoading) {
+    if (!allNetworks) {
       return { filteredNetworks: [], searchRadius: 0 };
     }
 
@@ -39,12 +37,11 @@ export function useNetworkListFiltering() {
       filteredNetworks: filterNetworks(allNetworks, countryCode, searchTerm),
       searchRadius: 0,
     };
-  }, [allNetworks, isLoading, countryCode, searchTerm, userLat, userLng]);
+  }, [allNetworks, countryCode, searchTerm, userLat, userLng]);
 
   return {
     filteredNetworks,
     searchRadius,
-    isLoading,
     userLat,
     userLng,
   };

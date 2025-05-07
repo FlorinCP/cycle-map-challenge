@@ -12,25 +12,6 @@ import {
   paginateItems,
 } from '@/api';
 
-function createGeoJsonData(networks: NetworkSummary[]) {
-  return {
-    type: 'FeatureCollection' as const,
-    features: networks.map(network => ({
-      type: 'Feature' as const,
-      geometry: {
-        type: 'Point' as const,
-        coordinates: [network.location.longitude, network.location.latitude],
-      },
-      properties: {
-        id: network.id,
-        name: network.name,
-        city: network.location.city,
-        country: network.location.country,
-      },
-    })),
-  };
-}
-
 export default async function NetworksPage({
   searchParams,
 }: {
@@ -73,8 +54,6 @@ export default async function NetworksPage({
     NETWORK_ITEMS_PER_PAGE
   );
 
-  const mapGeoJsonData = createGeoJsonData(filteredNetworks);
-
   if (fetchError) {
     return (
       <PageMapLayout>
@@ -86,6 +65,8 @@ export default async function NetworksPage({
     );
   }
 
+  // add suspense
+
   return (
     <Suspense fallback={<LoadingScreen />}>
       <PageMapLayout>
@@ -93,7 +74,7 @@ export default async function NetworksPage({
           networksToDisplay={paginatedNetworks}
           totalPages={totalPages}
         />
-        <NetworkListMap geoJsonData={mapGeoJsonData} />
+        <NetworkListMap filteredNetworks={filteredNetworks}/>
       </PageMapLayout>
     </Suspense>
   );

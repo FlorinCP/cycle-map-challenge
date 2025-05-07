@@ -11,14 +11,13 @@ import React, { useRef, useCallback, useEffect, useMemo } from 'react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
-import { useGetNetworkDetailQuery } from '@/api';
-import { Spinner } from '@/components/ui/spinner';
 import { useStationGeoJsonData } from '@/hooks/map/use-station-list-geo-json-data';
 import { ZoomControls } from '@/components/map/zoom-controls';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { NetworkDetail } from '@/types/city-bikes';
 
 interface Props {
-  networkId: string;
-  onSelectStation: (stationId: string | null) => void;
+  networkDetail: NetworkDetail;
 }
 
 const DefaultMapInitialState = {
@@ -29,23 +28,35 @@ const DefaultMapInitialState = {
   bearing: 0,
 };
 
-export const NetworkDetailMap: React.FC<Props> = ({
-  networkId,
-  onSelectStation,
-}) => {
+export const NetworkDetailMap: React.FC<Props> = ({ networkDetail }) => {
   const mapRef = useRef<MapRef>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const mapStyle = process.env.NEXT_PUBLIC_MAP_STYLE;
-
-  const { data: networkDetail, isLoading } =
-    useGetNetworkDetailQuery(networkId);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const geojsonData = useStationGeoJsonData(networkDetail?.stations);
+
+  const onSelectStation = useCallback(
+    (stationId: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (stationId) {
+        params.set('stationId', stationId);
+      } else {
+        params.delete('stationId');
+      }
+
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      router.replace(newUrl, { scroll: false });
+    },
+    [router, searchParams]
+  );
 
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
 
-    let hoveredId: string | number | null = null;
+    let hoveredId: number | string | undefined = undefined;
 
     popupRef.current = new maplibregl.Popup({
       closeButton: false,
@@ -121,7 +132,7 @@ export const NetworkDetailMap: React.FC<Props> = ({
           { source: 'stations', id: hoveredId },
           { hover: false }
         );
-        hoveredId = null;
+        hoveredId = undefined;
       }
       onSelectStation(null);
 
@@ -142,7 +153,31 @@ export const NetworkDetailMap: React.FC<Props> = ({
         onSelectStation(stationId);
       }
     });
-  }, [onSelectStation]);
+
+    const stationIdFromUrl = searchParams.get('stationId');
+    if (stationIdFromUrl && map.isStyleLoaded()) {
+      const features = map.querySourceFeatures('stations', {
+        filter: ['==', ['get', 'id'], stationIdFromUrl],
+      });
+
+      if (features.length > 0) {
+        const feature = features[0];
+        hoveredId = feature.id;
+        map.setFeatureState(
+          { source: 'stations', id: hoveredId },
+          { hover: true }
+        );
+
+        // You might also want to fly to this station
+        if (feature.geometry.type === 'Point') {
+          map.flyTo({
+            center: feature.geometry.coordinates as [number, number],
+            zoom: 15,
+          });
+        }
+      }
+    }
+  }, [onSelectStation, searchParams]);
 
   const bounds: LngLatBoundsLike | undefined = useMemo(() => {
     if (!networkDetail?.stations?.length) return undefined;
@@ -176,14 +211,6 @@ export const NetworkDetailMap: React.FC<Props> = ({
       popupRef.current?.remove();
     };
   }, []);
-
-  if (isLoading || !networkDetail?.location) {
-    return (
-      <div className="relative w-full h-full flex items-center justify-center bg-zinc-50">
-        <Spinner />
-      </div>
-    );
-  }
 
   return (
     <div className="relative w-full h-full">
